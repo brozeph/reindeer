@@ -489,4 +489,25 @@ describe('validators', function () {
 			result.should.be.true;
 		});
 	});
+
+	describe('#string', function () {
+		var isValid = validators.string();
+
+		it('should properly detect field.required setting', function () {
+			var result = isValid(null);
+			result.should.be.true;
+
+			validators.string({ required : true })(null).should.be.false;
+		});
+
+		it('should be false when value is not a string', function () {
+			var result = isValid(1234);
+			result.should.be.false;
+		});
+
+		it('should be true when value is a valid string', function () {
+			var result = isValid('dafuq');
+			result.should.be.true;
+		});
+	});
 });
