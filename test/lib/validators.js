@@ -279,4 +279,72 @@ describe('validators', function () {
 			result.should.be.true;
 		});
 	});
+
+	describe('geo_shape', function () {
+		// jshint camelcase : false
+		var isValid = validators.geo_shape();
+
+		it('should properly detect field.required setting', function () {
+			var result = isValid(null);
+			result.should.be.true;
+
+			validators.geo_shape({ required : true })(null).should.be.false;
+		});
+
+		it('should be false when type field is missing', function () {
+			var result = isValid({ coordinates : [1, 2] });
+			result.should.be.false;
+		});
+
+		it('should be false when coordinates field is missing', function () {
+			var result = isValid({ type : 'circle' });
+			result.should.be.false;
+		});
+
+		it('should be false when type field is invalid', function () {
+			var result = isValid({ type : 'rectangle', coordinates : [1, 2] });
+			result.should.be.false;
+		});
+
+		it('should be false when type field is invalid', function () {
+			var result = isValid({ type : 'rectangle', coordinates : [1, 2] });
+			result.should.be.false;
+		});
+
+		it('should be false when type is geometrycollection and geometries are missing', function () {
+			var result = isValid({
+				type : 'geometrycollection',
+				coordinates : [
+					{ type : 'point', coordinates : [1, 2] },
+					{ type : 'point', coordinates : [2, 1] }
+				]
+			});
+
+			result.should.be.false;
+		});
+
+		it('should be false when type is geometrycollection and an invalid geometry is provided', function () {
+			var result = isValid({
+				type : 'geometrycollection',
+				geometries : [
+					{ type : 'rectangle', coordinates : [1, 2] },
+					{ type : 'point', coordinates : [2, 1] }
+				]
+			});
+
+			result.should.be.false;
+		});
+
+		it('should be true when type is geometrycollection and geometries are provided', function () {
+			var result = isValid({
+				type : 'geometrycollection',
+				geometries : [
+					{ type : 'point', coordinates : [1, 2] },
+					{ type : 'point', coordinates : [2, 1] }
+				]
+			});
+
+			result.should.be.true;
+		});
+	});
 });
