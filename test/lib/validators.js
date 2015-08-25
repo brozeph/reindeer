@@ -405,7 +405,20 @@ describe('validators', function () {
 			validators.ip({ required : true })(null).should.be.false;
 		});
 
+		it('should be false when value is not a string', function () {
+			var result = isValid(123456);
+			result.should.be.false;
+		});
 
+		it('should be false when value is not a valid IP', function () {
+			var result = isValid('256.256.256.256');
+			result.should.be.false;
+		});
+
+		it('should be true when value is a valid IP', function () {
+			var result = isValid('10.0.0.1');
+			result.should.be.true;
+		});
 	});
 
 	describe('#long', function () {
