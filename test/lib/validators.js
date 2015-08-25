@@ -9,7 +9,7 @@ var
 describe('validators', function () {
 	'use strict';
 
-	describe('attachment', function () {
+	describe('#attachment', function () {
 		var isValid = validators.attachment();
 
 		it('should properly detect field.required setting', function () {
@@ -17,6 +17,10 @@ describe('validators', function () {
 			result.should.be.true;
 
 			validators.attachment({ required : true })(null).should.be.false;
+
+			// additional checks for empty strings and objects
+			validators.attachment({ required : true })('').should.be.false;
+			validators.attachment({ required : true })({}).should.be.false;
 		});
 
 		it('should be false when value is not a string', function () {
@@ -40,7 +44,7 @@ describe('validators', function () {
 		});
 	});
 
-	describe('binary', function () {
+	describe('#binary', function () {
 		var isValid = validators.binary();
 
 		it('should properly detect field.required setting', function () {
@@ -71,7 +75,7 @@ describe('validators', function () {
 		});
 	});
 
-	describe('boolean', function () {
+	describe('#boolean', function () {
 		var isValid = validators.boolean();
 
 		it('should properly detect field.required setting', function () {
@@ -118,7 +122,7 @@ describe('validators', function () {
 		});
 	});
 
-	describe('byte', function () {
+	describe('#byte', function () {
 		var isValid = validators.byte();
 
 		it('should properly detect field.required setting', function () {
@@ -147,7 +151,7 @@ describe('validators', function () {
 		});
 	});
 
-	describe('date', function () {
+	describe('#date', function () {
 		var isValid = validators.date();
 
 		it('should properly detect field.required setting', function () {
@@ -184,7 +188,7 @@ describe('validators', function () {
 		});
 	});
 
-	describe('double', function () {
+	describe('#double', function () {
 		var isValid = validators.double();
 
 		it('should properly detect field.required setting', function () {
@@ -205,10 +209,13 @@ describe('validators', function () {
 
 			result = isValid(4.9E-324);
 			result.should.be.true;
+
+			result = isValid(99.99);
+			result.should.be.true;
 		});
 	});
 
-	describe('float', function () {
+	describe('#float', function () {
 		var isValid = validators.float();
 
 		it('should properly detect field.required setting', function () {
@@ -229,10 +236,13 @@ describe('validators', function () {
 
 			result = isValid(3.4028235E38);
 			result.should.be.true;
+
+			result = isValid(99.99);
+			result.should.be.true;
 		});
 	});
 
-	describe('geo_point', function () {
+	describe('#geo_point', function () {
 		// jshint camelcase : false
 		var isValid = validators.geo_point();
 
@@ -280,7 +290,7 @@ describe('validators', function () {
 		});
 	});
 
-	describe('geo_shape', function () {
+	describe('#geo_shape', function () {
 		// jshint camelcase : false
 		var isValid = validators.geo_shape();
 
@@ -309,6 +319,11 @@ describe('validators', function () {
 		it('should be false when type field is invalid', function () {
 			var result = isValid({ type : 'rectangle', coordinates : [1, 2] });
 			result.should.be.false;
+		});
+
+		it('should be true when type is not geometrycollection and coordinates are valid', function () {
+			var result = isValid({ type : 'point', coordinates : [1, 2] });
+			result.should.be.true;
 		});
 
 		it('should be false when type is geometrycollection and geometries are missing', function () {
@@ -344,6 +359,88 @@ describe('validators', function () {
 				]
 			});
 
+			result.should.be.true;
+		});
+	});
+
+	describe('#integer', function () {
+		var isValid = validators.integer();
+
+		it('should properly detect field.required setting', function () {
+			var result = isValid(null);
+			result.should.be.true;
+
+			validators.integer({ required : true })(null).should.be.false;
+		});
+
+		it('should be false when value is not a number', function () {
+			var result = isValid('dafuq');
+			result.should.be.false;
+		});
+
+		it('should be false when value outside of integer range', function () {
+			var result = isValid(2147483648);
+			result.should.be.false;
+
+			result = isValid(-2147483649);
+			result.should.be.false;
+		});
+
+		it('should be true when value is a valid integer number', function () {
+			var result = isValid(2147483647);
+			result.should.be.true;
+
+			result = isValid(-2147483648);
+			result.should.be.true;
+		});
+	});
+
+	describe('#ip', function () {
+		var isValid = validators.ip();
+
+		it('should properly detect field.required setting', function () {
+			var result = isValid(null);
+			result.should.be.true;
+
+			validators.ip({ required : true })(null).should.be.false;
+		});
+
+
+	});
+
+	describe('#long', function () {
+		var isValid = validators.long();
+
+		it('should properly detect field.required setting', function () {
+			var result = isValid(null);
+			result.should.be.true;
+
+			validators.long({ required : true })(null).should.be.false;
+		});
+
+		it('should be false when value is not a number', function () {
+			var result = isValid('dafuq');
+			result.should.be.false;
+		});
+	});
+
+	describe('#object', function () {
+		var isValid = validators.object();
+
+		it('should properly detect field.required setting', function () {
+			var result = isValid(null);
+			result.should.be.true;
+
+			validators.ip({ required : true })(null).should.be.false;
+		});
+
+		it('should be false when value is not an object', function () {
+			var result = isValid('dafuq');
+			result.should.be.false;
+		});
+
+		it('should be true when value is valid object', function () {
+			var result = isValid({ test : true });
 			result.should.be.true;
 		});
 	});
