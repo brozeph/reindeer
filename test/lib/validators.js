@@ -457,4 +457,36 @@ describe('validators', function () {
 			result.should.be.true;
 		});
 	});
+
+	describe('#short', function () {
+		var isValid = validators.short();
+
+		it('should properly detect field.required setting', function () {
+			var result = isValid(null);
+			result.should.be.true;
+
+			validators.short({ required : true })(null).should.be.false;
+		});
+
+		it('should be false when value is not a number', function () {
+			var result = isValid('dafuq');
+			result.should.be.false;
+		});
+
+		it('should be false when value outside of short range', function () {
+			var result = isValid(32768);
+			result.should.be.false;
+
+			result = isValid(-32769);
+			result.should.be.false;
+		});
+
+		it('should be true when value is a valid short number', function () {
+			var result = isValid(32767);
+			result.should.be.true;
+
+			result = isValid(-32768);
+			result.should.be.true;
+		});
+	});
 });
