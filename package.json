@@ -15,7 +15,9 @@
   ],
   "repository": "git://github.com/brozeph/elastic-schema.git",
   "homepage": "http://github.com/brozeph/elastic-schema",
-  "dependencies": {},
+  "dependencies": {
+    "es": "^0.4.5"
+  },
   "devDependencies": {
     "chai": "^3.2.0",
     "del": "^1.2.1",
