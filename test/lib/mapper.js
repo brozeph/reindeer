@@ -198,8 +198,60 @@ describe('mapper', function () {
 			});
 		});
 
-		it('should handle arrays and sub-documents elegantly', function () {
-			mockModel.strictDynamicSubDocument = [mockModel.strictDynamicSubDocument];
+	});
+
+	describe('#validate - sub-document arrays', function () {
+		it('should handle arrays and sub-documents elegantly', function (done) {
+			mockModel.strictDynamicSubDocument = [
+				JSON.parse(JSON.stringify(mockModel.strictDynamicSubDocument)),
+				JSON.parse(JSON.stringify(mockModel.strictDynamicSubDocument))];
+
+			mapper.validate(mockModel, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(result.strictDynamicSubDocument);
+				result.strictDynamicSubDocument.should.have.length(2);
+
+				return done();
+			});
+		});
+
+		it('should handle validation of sub-document arrays required fields correctly', function (done) {
+			mockModel.strictDynamicSubDocument = [
+				JSON.parse(JSON.stringify(mockModel.strictDynamicSubDocument)),
+				JSON.parse(JSON.stringify(mockModel.strictDynamicSubDocument))];
+
+			delete mockModel.strictDynamicSubDocument[1].someRequiredInteger;
+
+			mapper.validate(mockModel, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.errors);
+				err.errors.should.have.length(1);
+				err.errors[0].should.equal(
+					'field strictDynamicSubDocument[1].someRequiredInteger is required');
+
+				return done();
+			});
+		});
+
+		it('should handle validation of sub-document arrays invalid values correctly', function (done) {
+			mockModel.strictDynamicSubDocument = [
+				JSON.parse(JSON.stringify(mockModel.strictDynamicSubDocument)),
+				JSON.parse(JSON.stringify(mockModel.strictDynamicSubDocument))];
+
+			mockModel.strictDynamicSubDocument[1].someRequiredInteger = 'not an integer';
+
+			mapper.validate(mockModel, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.errors);
+				err.errors.should.have.length(1);
+				err.errors[0].should.equal(
+					'strictDynamicSubDocument[1].someRequiredInteger contains an invalid value (not an integer) for type integer');
+
+				return done();
+			});
 		});
 	});
 });
