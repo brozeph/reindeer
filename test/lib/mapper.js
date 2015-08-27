@@ -182,5 +182,24 @@ describe('mapper', function () {
 				return done();
 			});
 		});
+
+		it('should require fields marked as required in the mapping', function (done) {
+			delete mockModel.strictDynamicSubDocument.someRequiredInteger;
+
+			mapper.validate(mockModel, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.errors);
+				err.errors.should.have.length(1);
+				err.errors[0].should.equal(
+					'field strictDynamicSubDocument.someRequiredInteger is required');
+
+				return done();
+			});
+		});
+
+		it('should handle arrays and sub-documents elegantly', function () {
+			mockModel.strictDynamicSubDocument = [mockModel.strictDynamicSubDocument];
+		});
 	});
 });
