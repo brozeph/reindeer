@@ -1,0 +1,41 @@
+{
+	"properties": {
+		"strictDynamicSubDocument": {
+			"dynamic": "strict",
+			"properties": {
+				"someDate": {
+					"type": "date",
+					"format": "dateOptionalTime"
+				},
+				"someString": {
+					"type": "string"
+				},
+				"someRequiredInteger": {
+					"required": true,
+					"type": "integer"
+				}
+			}
+		},
+		"falseDynamicSubDocument": {
+			"dynamic": "false",
+			"properties": {
+				"anotherString": {
+					"type": "string"
+				}
+			}
+		},
+		"subDocument": {
+			"properties": {
+				"anotherInteger": {
+					"type": "integer"
+				}
+			}
+		},
+		"rootFloat": {
+			"type": "float"
+		},
+		"rootGeoPoint": {
+			"type": "geo_point"
+		}
+	}
+}
