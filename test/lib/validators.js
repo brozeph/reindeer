@@ -421,6 +421,41 @@ describe('validators', function () {
 		});
 	});
 
+	describe('#isPOJO', function () {
+		it('should properly return false when value is null', function () {
+			validators.isPOJO(null).should.be.false;
+		});
+
+		it('should properly return false when value is undefined', function () {
+			validators.isPOJO().should.be.false;
+		});
+
+		it('should properly return false when value is an Array', function () {
+			validators.isPOJO([]).should.be.false;
+			validators.isPOJO([1, 2, 3]).should.be.false;
+		});
+
+		it('should properly return false when value is a function', function () {
+			validators.isPOJO(function () {}).should.be.false;
+		});
+
+		it('should properly return false when value is a string', function () {
+			validators.isPOJO('test').should.be.false;
+		});
+
+		it('should properly return false when value is a number', function () {
+			validators.isPOJO(1).should.be.false;
+		});
+
+		it('should properly return false when value is a date', function () {
+			validators.isPOJO(new Date()).should.be.false;
+		});
+
+		it('should properly return true when value is an actual POJO', function () {
+			validators.isPOJO({ test : true }).should.be.true;
+		});
+	});
+
 	describe('#long', function () {
 		var isValid = validators.long();
 
