@@ -1,6 +1,7 @@
 'use strict';
 
 var
+	coveralls = require('gulp-coveralls'),
 	del = require('del'),
 	gulp = require('gulp'),
 	istanbul = require('gulp-istanbul'),
@@ -13,6 +14,12 @@ gulp.task('clean', function (callback) {
 	return del(['coverage'], callback);
 });
 
+
+gulp.task('coveralls', ['test-coverage'], function () {
+	return gulp
+		.src('reports/lcov.info')
+		.pipe(coveralls());
+});
 
 gulp.task('jshint', function () {
 	return gulp

@@ -34,6 +34,6 @@
     "url": "http://opensource.org/licenses/MIT"
   },
   "scripts": {
-    "test": "gulp test-all"
+    "test": "gulp coveralls"
   }
 }
