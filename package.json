@@ -1,5 +1,5 @@
 {
-  "name": "elastic-schema",
+  "name": "reindeer",
   "description": "Provides schema enforcement based on Elasticsearch type mappings",
   "main": "./lib/index.js",
   "version": "0.1.0",
@@ -13,8 +13,8 @@
     "schema",
     "validation"
   ],
-  "repository": "git://github.com/brozeph/elastic-schema.git",
-  "homepage": "http://github.com/brozeph/elastic-schema",
+  "repository": "git://github.com/brozeph/reindeer.git",
+  "homepage": "http://github.com/brozeph/reindeer",
   "dependencies": {
     "es": "^0.4.5"
   },
