@@ -1,7 +1,7 @@
 # Reindeer
 
 [![Build Status](https://travis-ci.org/brozeph/reindeer.svg)](https://travis-ci.org/brozeph/reindeer)
-[![Coverage Status](https://coveralls.io/repos/brozeph/reindeer/badge.svg?service=github)](https://coveralls.io/github/brozeph/reindeer)
+[![Coverage Status](https://coveralls.io/repos/brozeph/reindeer/badge.svg?branch=develop&service=github)](https://coveralls.io/github/brozeph/reindeer?branch=develop)
 
 Reindeer strives to make persisting objects to Elasticsearch simple and efficient. This module builds on top of [node-es](https://github.com/ncb000gt/node-es) to provide additional features for interacting with Elasticsearch including the following:
 
