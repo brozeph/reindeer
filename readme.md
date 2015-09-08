@@ -5,8 +5,9 @@
 
 Reindeer strives to make persisting objects to Elasticsearch simple and efficient. This module builds on top of [node-es](https://github.com/ncb000gt/node-es) to provide additional features for interacting with Elasticsearch including the following:
 
-* Validation of data types
-* Required fields
+* Validation of mapping types against input
+* Proper coercion of data types in accordance with mapping specification
+* Required fields support in mapping (not a native feature of Elasticsearch)
 * Dynamic [strict and false](https://www.elastic.co/guide/en/elasticsearch/guide/current/dynamic-mapping.html) mapping support
 
 ## Current Status
