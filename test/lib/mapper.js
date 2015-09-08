@@ -134,9 +134,8 @@ describe('mapper', function () {
 			mapper.validate({}, function (err, result) {
 				should.exist(err);
 				should.not.exist(result);
-				should.exist(err.errors);
-				err.errors.should.have.length(1);
-				err.errors[0].should.equal('model is not an object or is empty');
+
+				err.message.should.equal('model is not an object or is empty');
 
 				return done();
 			});
@@ -148,9 +147,8 @@ describe('mapper', function () {
 			mapper.validate(mockModel, function (err, result) {
 				should.exist(err);
 				should.not.exist(result);
-				should.exist(err.errors);
-				err.errors.should.have.length(1);
-				err.errors[0].should.equal(
+
+				err.message.should.equal(
 					'strictDynamicSubDocument.badField is not a valid field in the strict type mapping');
 
 				return done();
@@ -163,9 +161,8 @@ describe('mapper', function () {
 			mapper.validate(mockModel, function (err, result) {
 				should.exist(err);
 				should.not.exist(result);
-				should.exist(err.errors);
-				err.errors.should.have.length(1);
-				err.errors[0].should.equal(
+
+				err.message.should.equal(
 					'strictDynamicSubDocument.badField is not a valid field in the strict type mapping');
 
 				return done();
@@ -204,9 +201,8 @@ describe('mapper', function () {
 			mapper.validate(mockModel, function (err, result) {
 				should.exist(err);
 				should.not.exist(result);
-				should.exist(err.errors);
-				err.errors.should.have.length(1);
-				err.errors[0].should.equal(
+
+				err.message.should.equal(
 					'strictDynamicSubDocument.someDate contains an invalid value (not a date) for type date');
 
 				return done();
@@ -219,9 +215,8 @@ describe('mapper', function () {
 			mapper.validate(mockModel, function (err, result) {
 				should.exist(err);
 				should.not.exist(result);
-				should.exist(err.errors);
-				err.errors.should.have.length(1);
-				err.errors[0].should.equal(
+
+				err.message.should.equal(
 					'field strictDynamicSubDocument.someRequiredInteger is required');
 
 				return done();
@@ -256,9 +251,8 @@ describe('mapper', function () {
 			mapper.validate(mockModel, function (err, result) {
 				should.exist(err);
 				should.not.exist(result);
-				should.exist(err.errors);
-				err.errors.should.have.length(1);
-				err.errors[0].should.equal(
+
+				err.message.should.equal(
 					'field strictDynamicSubDocument[1].someRequiredInteger is required');
 
 				return done();
@@ -275,9 +269,8 @@ describe('mapper', function () {
 			mapper.validate(mockModel, function (err, result) {
 				should.exist(err);
 				should.not.exist(result);
-				should.exist(err.errors);
-				err.errors.should.have.length(1);
-				err.errors[0].should.equal(
+
+				err.message.should.equal(
 					'strictDynamicSubDocument[1].someRequiredInteger contains an invalid value (not an integer) for type integer');
 
 				return done();
