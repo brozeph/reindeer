@@ -14,7 +14,10 @@ describe('mapper', function () {
 		mockModel;
 
 	beforeEach(function () {
-		mapper = new Mapper('testType', testMapping);
+		mapper = new Mapper({
+			_index : 'test-index',
+			_type : 'test-type'
+		}, testMapping);
 
 		mockModel = {
 			strictDynamicSubDocument : {
@@ -38,21 +41,42 @@ describe('mapper', function () {
 			var err;
 
 			try {
-				mapper = new Mapper('', testMapping);
+				mapper = new Mapper({
+					_type : 'test-type'
+				}, testMapping);
 			} catch (ex) {
 				err = ex;
 			}
 
 			should.exist(err);
 			should.exist(err.message);
-			err.message.should.equal('type name must be provided');
+			err.message.should.equal('_index must be provided');
+		});
+
+		it('should require type name on constructor', function () {
+			var err;
+
+			try {
+				mapper = new Mapper({
+					_index : 'test-index'
+				}, testMapping);
+			} catch (ex) {
+				err = ex;
+			}
+
+			should.exist(err);
+			should.exist(err.message);
+			err.message.should.equal('_type must be provided');
 		});
 
 		it('should require mapping on constructor', function () {
 			var err;
 
 			try {
-				mapper = new Mapper('testType');
+				mapper = new Mapper({
+					_index : 'test-index',
+					_type : 'test-type'
+				});
 			} catch (ex) {
 				err = ex;
 			}
@@ -70,7 +94,10 @@ describe('mapper', function () {
 			invalidMapping.properties.rootFloat.type = undefined;
 
 			try {
-				mapper = new Mapper('testType', invalidMapping);
+				mapper = new Mapper({
+					_index : 'test-index',
+					_type : 'test-type'
+				}, invalidMapping);
 			} catch (ex) {
 				err = ex;
 			}
@@ -88,7 +115,10 @@ describe('mapper', function () {
 			invalidMapping.properties.rootFloat.type = 'invalid';
 
 			try {
-				mapper = new Mapper('testType', invalidMapping);
+				mapper = new Mapper({
+					_index : 'test-index',
+					_type : 'test-type'
+				}, invalidMapping);
 			} catch (ex) {
 				err = ex;
 			}
