@@ -21,7 +21,7 @@ npm install reindeer
 
 ## Usage
 
-```
+```javascript
 var
   Mapper = require('reindeer').Mapper,
   cats = new Mapper('animals', 'cats', {
