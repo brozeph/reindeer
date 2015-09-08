@@ -28,6 +28,9 @@
 			"properties": {
 				"anotherInteger": {
 					"type": "integer"
+				},
+				"someBoolean": {
+					"type": "boolean"
 				}
 			}
 		},

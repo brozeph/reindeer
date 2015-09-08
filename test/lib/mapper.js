@@ -29,7 +29,8 @@ describe('mapper', function () {
 				anotherString : 'another test string'
 			},
 			subDocument : {
-				anotherInteger : 2
+				anotherInteger : 2,
+				someBoolean : true
 			},
 			rootFloat : 99.99,
 			rootGeoPoint : [-122, 35]
@@ -126,6 +127,106 @@ describe('mapper', function () {
 			should.exist(err);
 			should.exist(err.message);
 			err.message.should.equal('field rootFloat type is invalid: invalid');
+		});
+	});
+
+	describe('#parse', function () {
+		it('should properly fail with invalid JSON', function (done) {
+			mapper.parse('{ invalid json }', function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+
+				err.message.should.equal('unable to parse JSON');
+
+				return done();
+			});
+		});
+
+		it('should properly fail when supplied model is null', function (done) {
+			mapper.parse(null, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+
+				err.message.should.equal('supplied model is not an object');
+
+				return done();
+			});
+		});
+
+		it('should properly fail when supplied model is an empty object', function (done) {
+			mapper.parse({}, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+
+				err.message.should.equal('supplied model is not an object');
+
+				return done();
+			});
+		});
+
+
+		it('should properly coerce mapping type values', function (done) {
+			var json = JSON.stringify(mockModel);
+
+			mapper.parse(json, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+
+				should.exist(result.strictDynamicSubDocument.someDate);
+				(result.strictDynamicSubDocument.someDate instanceof Date)
+					.should.be.true;
+
+				should.exist(result.strictDynamicSubDocument.someString);
+				(typeof result.strictDynamicSubDocument.someString === 'string')
+					.should.be.true;
+
+				should.exist(result.strictDynamicSubDocument.someRequiredInteger);
+				(typeof result.strictDynamicSubDocument.someRequiredInteger === 'number')
+					.should.be.true;
+
+				should.exist(result.rootFloat);
+				(typeof result.rootFloat === 'number')
+					.should.be.true;
+
+				should.exist(result.rootGeoPoint);
+				(Array.isArray(result.rootGeoPoint))
+					.should.be.true;
+
+				return done();
+			});
+		});
+
+		it('should properly coerce array of mapping type values', function (done) {
+			var json = JSON.stringify([
+				mockModel,
+				mockModel]);
+
+			mapper.parse(json, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+
+				should.exist(result[0].strictDynamicSubDocument.someDate);
+				(result[0].strictDynamicSubDocument.someDate instanceof Date)
+					.should.be.true;
+
+				should.exist(result[0].strictDynamicSubDocument.someString);
+				(typeof result[0].strictDynamicSubDocument.someString === 'string')
+					.should.be.true;
+
+				should.exist(result[0].strictDynamicSubDocument.someRequiredInteger);
+				(typeof result[0].strictDynamicSubDocument.someRequiredInteger === 'number')
+					.should.be.true;
+
+				should.exist(result[0].rootFloat);
+				(typeof result[0].rootFloat === 'number')
+					.should.be.true;
+
+				should.exist(result[0].rootGeoPoint);
+				(Array.isArray(result[0].rootGeoPoint))
+					.should.be.true;
+
+				return done();
+			});
 		});
 	});
 
