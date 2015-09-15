@@ -32,7 +32,7 @@ var
     // schema
   });
 
-cats.validate({ name : 'Fluffy' }, function (err, result) {
+cats.parse('{ \"name\" : \"Fluffy\" }', function (err, result) {
   console.log(JSON.stringify(result, 0, 2));
 });
 
