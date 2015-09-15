@@ -22,21 +22,47 @@ npm install reindeer
 
 ## Usage
 
+### Constructor
+
 ```javascript
-var
-  Mapper = require('reindeer').Mapper,
-  cats = new Mapper('animals', 'cats', {
-    // schema
-  }),
-  dogs = new Schema('animals', 'dogs', {
-    // schema
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var cats = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    properties: {
+      birthday: {
+        type: 'date',
+        format: 'dateOptionalTime'
+      },
+      breed: {
+        required : true, // NOTE: not an official Elasticsearch mapping option
+        type: 'string'
+      },
+      name: {
+        required : true, // NOTE: not an official Elasticsearch mapping option
+        type: 'string'
+      },
+      attributes: {
+        properties: {
+          height: {
+            type: 'float'
+          },
+          weight: {
+            type: 'float'
+          }
+        }
+      }
+    }
   });
-
-cats.parse('{ \"name\" : \"Fluffy\" }', function (err, result) {
-  console.log(JSON.stringify(result, 0, 2));
-});
-
-dogs.validate({ breed : 'poodle' }, function (err, result) {
-  console.log(JSON.stringify(result, 0, 2));
-});
 ```
+
+### #get
+
+### #index
+
+### #parse
+
+### #validate
