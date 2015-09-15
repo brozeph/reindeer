@@ -1,5 +1,6 @@
 var
 	chai = require('chai'),
+	nock = require('nock'),
 	should = chai.should(),
 
 	Mapper = require('../../lib/mapper.js'),
@@ -10,8 +11,35 @@ describe('mapper', function () {
 	'use strict';
 
 	var
+		elasticsearch = nock('http://localhost:9200')
+			.get('/test-index/test-type/test-id/_source')
+			.reply(200, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return JSON.stringify(mockModel);
+			})
+			.get('/test-index/test-type/bad-id/_source')
+			.reply(404, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return null;
+			})
+			.get('/test-index/test-type/really-bad-id/_source')
+			.reply(503, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {
+					message : 'server unavailable',
+					statusCode : 503
+				};
+			}),
 		mapper,
-		mockModel;
+		mockModel,
+		requestBody,
+		requestUri;
 
 	beforeEach(function () {
 		mapper = new Mapper({
@@ -35,6 +63,9 @@ describe('mapper', function () {
 			rootFloat : 99.99,
 			rootGeoPoint : [-122, 35]
 		};
+
+		requestBody = null;
+		requestUri = null;
 	});
 
 	describe('constructor', function () {
@@ -130,6 +161,72 @@ describe('mapper', function () {
 		});
 	});
 
+	describe('#get', function () {
+		it('should return error when _id is null', function (done) {
+			mapper.get(null, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+
+				should.exist(err.name);
+				err.name.should.equal('InvalidParameterError');
+				should.exist(err.parameterName);
+				err.parameterName.should.equal('_id');
+
+				return done();
+			});
+		});
+
+		it('should return error when _id is undefined', function (done) {
+			mapper.get(undefined, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+
+				should.exist(err.name);
+				err.name.should.equal('InvalidParameterError');
+				should.exist(err.parameterName);
+				err.parameterName.should.equal('_id');
+
+				return done();
+			});
+		});
+
+		it('should properly not return an error when get finds no document', function (done) {
+			mapper.get('bad-id', function (err, result) {
+				should.not.exist(err);
+				should.not.exist(result);
+				requestUri.should.equal('/test-index/test-type/bad-id/_source');
+
+				return done();
+			});
+		});
+
+		it('should properly return non 404 errors', function (done) {
+			mapper.get('really-bad-id', function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.statusCode);
+				err.statusCode.should.equal(503);
+				requestUri.should.equal('/test-index/test-type/really-bad-id/_source');
+
+				return done();
+			});
+		});
+
+		it('should properly return document with correctly typed values', function (done) {
+			mapper.get('test-id', function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(result.strictDynamicSubDocument);
+				should.exist(result.strictDynamicSubDocument.someDate);
+				(result.strictDynamicSubDocument.someDate instanceof Date)
+					.should.be.true;
+				requestUri.should.equal('/test-index/test-type/test-id/_source');
+
+				return done();
+			});
+		});
+	});
+
 	describe('#parse', function () {
 		it('should properly fail with invalid JSON', function (done) {
 			mapper.parse('{ invalid json }', function (err, result) {
@@ -172,6 +269,7 @@ describe('mapper', function () {
 				should.not.exist(err);
 				should.exist(result);
 
+				should.exist(result.strictDynamicSubDocument);
 				should.exist(result.strictDynamicSubDocument.someDate);
 				(result.strictDynamicSubDocument.someDate instanceof Date)
 					.should.be.true;
