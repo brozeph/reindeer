@@ -12,13 +12,6 @@ describe('mapper', function () {
 
 	var
 		elasticsearch = nock('http://localhost:9200')
-			.get('/test-index/test-type/test-id/_source')
-			.reply(200, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return JSON.stringify(mockModel);
-			})
 			.get('/test-index/test-type/bad-id/_source')
 			.reply(404, function (uri, body) {
 				requestBody = body;
@@ -34,6 +27,62 @@ describe('mapper', function () {
 				return {
 					message : 'server unavailable',
 					statusCode : 503
+				};
+			})
+			.get('/test-index/test-type/test-id/_source')
+			.reply(200, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return JSON.stringify(mockModel);
+			})
+			.post('/test-index/test-type?op_type=create')
+			.reply(201, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {
+					_index : 'test-index',
+					_type : 'test-type',
+					_id : 'random',
+					_version : 1,
+					created : true
+				};
+			})
+			.put('/test-index/test-type/bad-id?op_type=create')
+			.reply(503, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {
+					message : 'server unavailable',
+					statusCode : 503
+				};
+			})
+			.put('/test-index/test-type/test-id?op_type=create')
+			.reply(201, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {
+					_index : 'test-index',
+					_type : 'test-type',
+					_id : 'test-id',
+					_version : 1,
+					created : true
+				};
+			})
+			.put('/test-index/test-type/test-id?ttl=1d&op_type=create')
+			.reply(201, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {
+					_index : 'test-index',
+					_type : 'test-type',
+					_id : 'test-id',
+					_version : 1,
+					created : true
 				};
 			}),
 		mapper,
@@ -224,6 +273,78 @@ describe('mapper', function () {
 
 				return done();
 			});
+		});
+	});
+
+	describe('#index', function () {
+		it('should return error when doc is null', function (done) {
+			mapper.index(null, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.name);
+				err.name.should.equal('InvalidModelError');
+
+				return done();
+			});
+		});
+
+		it('should properly bubble errors', function (done) {
+			mapper.index('bad-id', mockModel, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.statusCode);
+				err.statusCode.should.equal(503);
+				requestUri.should.equal('/test-index/test-type/bad-id?op_type=create');
+
+				return done();
+			});
+		});
+
+		it('should properly PUT when _id is supplied', function (done) {
+			mapper.index('test-id', mockModel, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(result.strictDynamicSubDocument);
+				should.exist(result.strictDynamicSubDocument.someDate);
+				(result.strictDynamicSubDocument.someDate instanceof Date)
+					.should.be.true;
+				requestUri.should.equal('/test-index/test-type/test-id?op_type=create');
+
+				return done();
+			});
+		});
+
+		it('should properly POST when _id is not supplied', function (done) {
+			mapper.index(mockModel, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(result.strictDynamicSubDocument);
+				should.exist(result.strictDynamicSubDocument.someDate);
+				(result.strictDynamicSubDocument.someDate instanceof Date)
+					.should.be.true;
+				requestUri.should.equal('/test-index/test-type?op_type=create');
+
+				return done();
+			});
+		});
+
+		it('should properly support _id overloaded as options', function (done) {
+			mapper.index({
+					_id : 'test-id',
+					ttl : '1d'
+				},
+				mockModel,
+				function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+					should.exist(result.strictDynamicSubDocument);
+					should.exist(result.strictDynamicSubDocument.someDate);
+					(result.strictDynamicSubDocument.someDate instanceof Date)
+						.should.be.true;
+					requestUri.should.equal('/test-index/test-type/test-id?ttl=1d&op_type=create');
+
+					return done();
+				});
 		});
 	});
 
