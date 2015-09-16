@@ -167,9 +167,73 @@ catsMapper.create(cat.animalId, cat, function (err, insertedCat) {
 
 ### #delete
 
+This method can be used to delete an existing document within Elasticsearch and it accepts two arguments:
+
+* `_id` - _(required)_ - this is the `_id` value with which the document has been indexed in Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts a single argument:
+  * `err` - populated with details in the event of an error during the operation
+
+The following example demonstrates the use of the `#delete` method on a mapping for cats:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var animalId = 12345;
+
+catsMapper.delete(animalId, function (err) {
+  if (err) {
+    console.error(err);
+  }
+
+  console.log('successfully deleted %d', animalId);
+});
+```
+
 ### #get
 
-### #index
+This method can be used to retrieve a single existing document from Elasticsearch and it accepts two arguments:
+
+* `_id` - _(required)_ - this is the `_id` value with which the document has been indexed in Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts two arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `model` - the validated model that is properly typed according to the mapping specification... in the event that the get method is unable to find a matching document, this will be set to `null`
+
+The following example demonstrates the use of the `#get` method on a mapping for cats:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var animalId = 12345;
+
+catsMapper.get(animalId, function (err, catsModel) {
+  if (err) {
+    console.error(err);
+  }
+
+  if (catsModel) {
+    console.log('successfully retrieved cat %d', animalId);
+    console.log(catsModel);
+  } else {
+    console.log('no cats exist with animalId %d', animalId);
+  }
+});
+```
 
 ### #parse
 
