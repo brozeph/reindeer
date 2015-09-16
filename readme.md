@@ -64,6 +64,10 @@ var cats = new Mapper({
   });
 ```
 
+### #create
+
+### #delete
+
 ### #get
 
 ### #index

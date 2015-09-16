@@ -2,6 +2,7 @@
 
 * Renamed Schema to Mapper to better reflect data access pattern used
 * Added Mapper#create
+* Added Mapper#delete
 * Added Mapper#get
 * Added Mapper#parse
 
