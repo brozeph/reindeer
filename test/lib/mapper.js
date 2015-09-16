@@ -60,6 +60,7 @@ describe('mapper', function () {
 				};
 			})
 			.put('/test-index/test-type/test-id?op_type=create')
+			.times(2) // two tests use this
 			.reply(201, function (uri, body) {
 				requestBody = body;
 				requestUri = uri;
@@ -110,7 +111,10 @@ describe('mapper', function () {
 				someBoolean : true
 			},
 			rootFloat : 99.99,
-			rootGeoPoint : [-122, 35]
+			rootGeoPoint : [-122, 35],
+			identity : {
+				docId : 'test-id'
+			}
 		};
 
 		requestBody = null;
@@ -249,6 +253,8 @@ describe('mapper', function () {
 		});
 
 		it('should properly POST when _id is not supplied', function (done) {
+			delete mockModel.identity;
+
 			mapper.create(mockModel, function (err, result) {
 				should.not.exist(err);
 				should.exist(result);
@@ -257,6 +263,17 @@ describe('mapper', function () {
 				(result.strictDynamicSubDocument.someDate instanceof Date)
 					.should.be.true;
 				requestUri.should.equal('/test-index/test-type?op_type=create');
+
+				return done();
+			});
+		});
+
+		it('should properly PUT when _id.path is supplied', function (done) {
+			mapper.create(mockModel, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+
+				requestUri.should.equal('/test-index/test-type/test-id?op_type=create');
 
 				return done();
 			});
