@@ -74,4 +74,8 @@ var cats = new Mapper({
 
 ### #parse
 
+### #update
+
+### #upsert
+
 ### #validate

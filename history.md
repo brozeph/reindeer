@@ -5,6 +5,8 @@
 * Added Mapper#delete
 * Added Mapper#get
 * Added Mapper#parse
+* Added Mapper#update
+* Added Mapper#upsert
 
 # v0.1.0 - 08.31.2015
 

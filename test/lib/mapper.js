@@ -83,6 +83,45 @@ describe('mapper', function () {
 					created : true
 				};
 			})
+			.post('/test-index/test-type/bad-id/_update')
+			.times(2) // replicated for upsert and update
+			.reply(503, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {
+					message : 'server unavailable',
+					statusCode : 503
+				};
+			})
+			.post('/test-index/test-type/test-id/_update')
+			.times(2) // replicated for upsert and update
+			.reply(201, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {
+					_index : 'test-index',
+					_type : 'test-type',
+					_id : 'test-id',
+					_version : 1,
+					updated : true
+				};
+			})
+			.post('/test-index/test-type/test-id/_update?retry_on_conflict=3')
+			.times(2) // replicated for upsert and update
+			.reply(201, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {
+					_index : 'test-index',
+					_type : 'test-type',
+					_id : 'test-id',
+					_version : 1,
+					updated : true
+				};
+			})
 			.put('/test-index/test-type/bad-id?op_type=create')
 			.reply(503, function (uri, body) {
 				requestBody = body;
@@ -581,6 +620,126 @@ describe('mapper', function () {
 				should.exist(result[0].rootGeoPoint);
 				(Array.isArray(result[0].rootGeoPoint))
 					.should.be.true;
+
+				return done();
+			});
+		});
+	});
+
+	describe('#update', function () {
+		it('should return error when doc is null', function (done) {
+			mapper.update(null, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.name);
+				err.name.should.equal('InvalidModelError');
+
+				return done();
+			});
+		});
+
+		it('should properly bubble errors', function (done) {
+			mapper.update('bad-id', mockModel, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.statusCode);
+				err.statusCode.should.equal(503);
+				requestUri.should.equal('/test-index/test-type/bad-id/_update');
+				should.exist(requestBody)
+				requestBody.should.not.contain('doc_as_upsert');
+
+				return done();
+			});
+		});
+
+		it('should properly update and coerce types supplied', function (done) {
+			mapper.update('test-id', mockModel, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(result.strictDynamicSubDocument);
+				should.exist(result.strictDynamicSubDocument.someDate);
+				(result.strictDynamicSubDocument.someDate instanceof Date)
+					.should.be.true;
+				requestUri.should.equal('/test-index/test-type/test-id/_update');
+				should.exist(requestBody)
+				requestBody.should.not.contain('doc_as_upsert');
+
+				return done();
+			});
+		});
+
+		it('should properly support _id overloaded as options', function (done) {
+			var options = {
+				_id : 'test-id',
+				'retry_on_conflict' : 3
+			};
+
+			mapper.update(options, mockModel, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				requestUri.should.equal('/test-index/test-type/test-id/_update?retry_on_conflict=3');
+				should.exist(requestBody)
+				requestBody.should.not.contain('doc_as_upsert');
+
+				return done();
+			});
+		});
+	});
+
+	describe('#upsert', function () {
+		it('should return error when doc is null', function (done) {
+			mapper.upsert(null, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.name);
+				err.name.should.equal('InvalidModelError');
+
+				return done();
+			});
+		});
+
+		it('should properly bubble errors', function (done) {
+			mapper.upsert('bad-id', mockModel, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.statusCode);
+				err.statusCode.should.equal(503);
+				requestUri.should.equal('/test-index/test-type/bad-id/_update');
+				should.exist(requestBody)
+				requestBody.should.contain('doc_as_upsert');
+
+				return done();
+			});
+		});
+
+		it('should properly upsert and coerce types supplied', function (done) {
+			mapper.upsert('test-id', mockModel, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(result.strictDynamicSubDocument);
+				should.exist(result.strictDynamicSubDocument.someDate);
+				(result.strictDynamicSubDocument.someDate instanceof Date)
+					.should.be.true;
+				requestUri.should.equal('/test-index/test-type/test-id/_update');
+				should.exist(requestBody)
+				requestBody.should.contain('doc_as_upsert');
+
+				return done();
+			});
+		});
+
+		it('should properly support _id overloaded as options', function (done) {
+			var options = {
+				_id : 'test-id',
+				'retry_on_conflict' : 3
+			};
+
+			mapper.upsert(options, mockModel, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				requestUri.should.equal('/test-index/test-type/test-id/_update?retry_on_conflict=3');
+				should.exist(requestBody)
+				requestBody.should.contain('doc_as_upsert');
 
 				return done();
 			});
