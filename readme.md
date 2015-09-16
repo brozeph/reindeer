@@ -1,14 +1,14 @@
 # Reindeer
 
 [![Build Status](https://travis-ci.org/brozeph/reindeer.svg)](https://travis-ci.org/brozeph/reindeer)
-[![Coverage Status](https://coveralls.io/repos/brozeph/reindeer/badge.svg?branch=develop&service=github)](https://coveralls.io/github/brozeph/reindeer?branch=develop)
+[![Coverage Status](https://coveralls.io/repos/brozeph/reindeer/badge.svg?branch=master&service=github)](https://coveralls.io/github/brozeph/reindeer?branch=master)
 
 Reindeer strives to make persisting objects to Elasticsearch simple and efficient. This module builds on top of [node-es](https://github.com/ncb000gt/node-es) to provide additional features for interacting with Elasticsearch including the following:
 
 * Validation of mapping types against input
 * Proper coercion of data types in accordance with mapping specification
 * Support for `_id.path` in the mapping specification
-  * NOTE: `path` is deprecated in v1.5.0 of Elasticsearch
+  * NOTE: `path` has been deprecated since v1.5.0 of Elasticsearch
 * Required fields support in mapping (not a native feature of Elasticsearch)
 * Dynamic [strict and false](https://www.elastic.co/guide/en/elasticsearch/guide/current/dynamic-mapping.html) mapping support
 
