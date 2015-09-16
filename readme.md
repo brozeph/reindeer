@@ -7,6 +7,8 @@ Reindeer strives to make persisting objects to Elasticsearch simple and efficien
 
 * Validation of mapping types against input
 * Proper coercion of data types in accordance with mapping specification
+* Support for `_id.path` in the mapping specification
+  * NOTE: `path` is deprecated in v1.5.0 of Elasticsearch
 * Required fields support in mapping (not a native feature of Elasticsearch)
 * Dynamic [strict and false](https://www.elastic.co/guide/en/elasticsearch/guide/current/dynamic-mapping.html) mapping support
 
@@ -32,26 +34,29 @@ var cats = new Mapper({
     _index : 'animals',
     _type : 'cats'
   }, {
-    properties: {
-      birthday: {
-        type: 'date',
-        format: 'dateOptionalTime'
+    properties : {
+      animalId : {
+        type : 'string'
       },
-      breed: {
+      birthday : {
+        type : 'date',
+        format : 'dateOptionalTime'
+      },
+      breed : {
         required : true, // NOTE: not an official Elasticsearch mapping option
-        type: 'string'
+        type : 'string'
       },
-      name: {
+      name : {
         required : true, // NOTE: not an official Elasticsearch mapping option
-        type: 'string'
+        type : 'string'
       },
-      attributes: {
-        properties: {
-          height: {
-            type: 'float'
+      attributes : {
+        properties : {
+          height : {
+            type : 'float'
           },
-          weight: {
-            type: 'float'
+          weight : {
+            type : 'float'
           }
         }
       }
