@@ -210,6 +210,78 @@ describe('mapper', function () {
 		});
 	});
 
+	describe('#create', function () {
+		it('should return error when doc is null', function (done) {
+			mapper.create(null, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.name);
+				err.name.should.equal('InvalidModelError');
+
+				return done();
+			});
+		});
+
+		it('should properly bubble errors', function (done) {
+			mapper.create('bad-id', mockModel, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.statusCode);
+				err.statusCode.should.equal(503);
+				requestUri.should.equal('/test-index/test-type/bad-id?op_type=create');
+
+				return done();
+			});
+		});
+
+		it('should properly PUT when _id is supplied', function (done) {
+			mapper.create('test-id', mockModel, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(result.strictDynamicSubDocument);
+				should.exist(result.strictDynamicSubDocument.someDate);
+				(result.strictDynamicSubDocument.someDate instanceof Date)
+					.should.be.true;
+				requestUri.should.equal('/test-index/test-type/test-id?op_type=create');
+
+				return done();
+			});
+		});
+
+		it('should properly POST when _id is not supplied', function (done) {
+			mapper.create(mockModel, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(result.strictDynamicSubDocument);
+				should.exist(result.strictDynamicSubDocument.someDate);
+				(result.strictDynamicSubDocument.someDate instanceof Date)
+					.should.be.true;
+				requestUri.should.equal('/test-index/test-type?op_type=create');
+
+				return done();
+			});
+		});
+
+		it('should properly support _id overloaded as options', function (done) {
+			mapper.create({
+					_id : 'test-id',
+					ttl : '1d'
+				},
+				mockModel,
+				function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+					should.exist(result.strictDynamicSubDocument);
+					should.exist(result.strictDynamicSubDocument.someDate);
+					(result.strictDynamicSubDocument.someDate instanceof Date)
+						.should.be.true;
+					requestUri.should.equal('/test-index/test-type/test-id?ttl=1d&op_type=create');
+
+					return done();
+				});
+		});
+	});
+
 	describe('#get', function () {
 		it('should return error when _id is null', function (done) {
 			mapper.get(null, function (err, result) {
@@ -276,78 +348,6 @@ describe('mapper', function () {
 		});
 	});
 
-	describe('#index', function () {
-		it('should return error when doc is null', function (done) {
-			mapper.index(null, function (err, result) {
-				should.exist(err);
-				should.not.exist(result);
-				should.exist(err.name);
-				err.name.should.equal('InvalidModelError');
-
-				return done();
-			});
-		});
-
-		it('should properly bubble errors', function (done) {
-			mapper.index('bad-id', mockModel, function (err, result) {
-				should.exist(err);
-				should.not.exist(result);
-				should.exist(err.statusCode);
-				err.statusCode.should.equal(503);
-				requestUri.should.equal('/test-index/test-type/bad-id?op_type=create');
-
-				return done();
-			});
-		});
-
-		it('should properly PUT when _id is supplied', function (done) {
-			mapper.index('test-id', mockModel, function (err, result) {
-				should.not.exist(err);
-				should.exist(result);
-				should.exist(result.strictDynamicSubDocument);
-				should.exist(result.strictDynamicSubDocument.someDate);
-				(result.strictDynamicSubDocument.someDate instanceof Date)
-					.should.be.true;
-				requestUri.should.equal('/test-index/test-type/test-id?op_type=create');
-
-				return done();
-			});
-		});
-
-		it('should properly POST when _id is not supplied', function (done) {
-			mapper.index(mockModel, function (err, result) {
-				should.not.exist(err);
-				should.exist(result);
-				should.exist(result.strictDynamicSubDocument);
-				should.exist(result.strictDynamicSubDocument.someDate);
-				(result.strictDynamicSubDocument.someDate instanceof Date)
-					.should.be.true;
-				requestUri.should.equal('/test-index/test-type?op_type=create');
-
-				return done();
-			});
-		});
-
-		it('should properly support _id overloaded as options', function (done) {
-			mapper.index({
-					_id : 'test-id',
-					ttl : '1d'
-				},
-				mockModel,
-				function (err, result) {
-					should.not.exist(err);
-					should.exist(result);
-					should.exist(result.strictDynamicSubDocument);
-					should.exist(result.strictDynamicSubDocument.someDate);
-					(result.strictDynamicSubDocument.someDate instanceof Date)
-						.should.be.true;
-					requestUri.should.equal('/test-index/test-type/test-id?ttl=1d&op_type=create');
-
-					return done();
-				});
-		});
-	});
-
 	describe('#parse', function () {
 		it('should properly fail with invalid JSON', function (done) {
 			mapper.parse('{ invalid json }', function (err, result) {
@@ -384,6 +384,8 @@ describe('mapper', function () {
 
 
 		it('should properly coerce mapping type values', function (done) {
+			mockModel.falseDynamicSubDocument.anotherString = 1;
+
 			var json = JSON.stringify(mockModel);
 
 			mapper.parse(json, function (err, result) {
@@ -402,6 +404,11 @@ describe('mapper', function () {
 				should.exist(result.strictDynamicSubDocument.someRequiredInteger);
 				(typeof result.strictDynamicSubDocument.someRequiredInteger === 'number')
 					.should.be.true;
+
+				should.exist(result.falseDynamicSubDocument.anotherString);
+				(typeof result.falseDynamicSubDocument.anotherString === 'string')
+					.should.be.true;
+				result.falseDynamicSubDocument.anotherString.should.equal('1');
 
 				should.exist(result.rootFloat);
 				(typeof result.rootFloat === 'number')
@@ -543,6 +550,20 @@ describe('mapper', function () {
 			});
 		});
 
+		it('should properly detect _id.path and extract from the model', function (done) {
+			mockModel.identity = {
+				docId : 'test-id'
+			};
+
+			mapper.validate(mockModel, function (err, result, resultId) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(resultId);
+				resultId.should.equal('test-id');
+
+				return done();
+			});
+		});
 	});
 
 	describe('#validate - sub-document arrays', function () {
