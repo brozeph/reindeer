@@ -12,12 +12,39 @@ describe('mapper', function () {
 
 	var
 		elasticsearch = nock('http://localhost:9200')
+			.delete('/test-index/test-type/test-id')
+			.reply(202, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {};
+			})
+			.delete('/test-index/test-type/bad-id')
+			.reply(404, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {
+					message : 'not found',
+					statusCode : 404
+				};
+			})
+			.delete('/test-index/test-type/test-id?timeout=1m')
+			.reply(202, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return {};
+			})
 			.get('/test-index/test-type/bad-id/_source')
 			.reply(404, function (uri, body) {
 				requestBody = body;
 				requestUri = uri;
 
-				return null;
+				return {
+					message : 'not found',
+					statusCode : 404
+				};
 			})
 			.get('/test-index/test-type/really-bad-id/_source')
 			.reply(503, function (uri, body) {
@@ -303,6 +330,71 @@ describe('mapper', function () {
 
 					return done();
 				});
+		});
+	});
+
+	describe('#delete', function () {
+		it('should return error when _id is null', function (done) {
+			mapper.delete(null, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+
+				should.exist(err.name);
+				err.name.should.equal('InvalidParameterError');
+				should.exist(err.parameterName);
+				err.parameterName.should.equal('_id');
+
+				return done();
+			});
+		});
+
+		it('should return error when _id is undefined', function (done) {
+			mapper.delete(undefined, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+
+				should.exist(err.name);
+				err.name.should.equal('InvalidParameterError');
+				should.exist(err.parameterName);
+				err.parameterName.should.equal('_id');
+
+				return done();
+			});
+		});
+
+		it('should properly bubble errors', function (done) {
+			mapper.delete('bad-id', function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				requestUri.should.equal('/test-index/test-type/bad-id');
+
+				return done();
+			});
+		});
+
+		it('should properly delete', function (done) {
+			mapper.delete('test-id', function (err, result) {
+				should.not.exist(err);
+				should.not.exist(result);
+				requestUri.should.equal('/test-index/test-type/test-id');
+
+				return done();
+			});
+		});
+
+		it('should support overload of _id as options', function (done) {
+			var options = {
+				_id : 'test-id',
+				timeout : '1m'
+			};
+
+			mapper.delete(options, function (err, result) {
+				should.not.exist(err);
+				should.not.exist(result);
+				requestUri.should.equal('/test-index/test-type/test-id?timeout=1m');
+
+				return done();
+			});
 		});
 	});
 
