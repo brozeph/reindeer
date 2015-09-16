@@ -36,6 +36,13 @@ describe('mapper', function () {
 
 				return JSON.stringify(mockModel);
 			})
+			.get('/test-index/test-type/test-id/_source?fields=identity')
+			.reply(200, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return JSON.stringify({ identity : mockModel.identity });
+			})
 			.post('/test-index/test-type?op_type=create')
 			.reply(201, function (uri, body) {
 				requestBody = body;
@@ -359,6 +366,21 @@ describe('mapper', function () {
 				(result.strictDynamicSubDocument.someDate instanceof Date)
 					.should.be.true;
 				requestUri.should.equal('/test-index/test-type/test-id/_source');
+
+				return done();
+			});
+		});
+
+		it('should support overload of _id as options', function (done) {
+			var options = {
+				_id : 'test-id',
+				fields : 'identity'
+			};
+
+			mapper.get(options, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				requestUri.should.equal('/test-index/test-type/test-id/_source?fields=identity');
 
 				return done();
 			});
