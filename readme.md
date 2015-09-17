@@ -44,7 +44,7 @@ npm install reindeer
 * bulkUpdate _(coming soon)_
 * bulkUpsert _(coming soon)_
 
-#### Parsing and Validation
+#### Object Parsing and Validation
 
 * [parse](#parse)
 * [validate](#validate)
