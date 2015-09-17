@@ -24,6 +24,31 @@ npm install reindeer
 
 ## Usage
 
+#### Construction
+
+* [constructor](#constructor)
+
+#### Basic CRUD Operations
+
+* [create](#create)
+* [delete](#delete)
+* [get](#get)
+* [update](#update)
+* [upsert](#upsert)
+
+#### Bulk CRUD Operations
+
+* bulkCreate _(coming soon)_
+* bulkDelete _(coming soon)_
+* bulkGet _(coming soon)_
+* bulkUpdate _(coming soon)_
+* bulkUpsert _(coming soon)_
+
+#### Parsing and Validation
+
+* [parse](#parse)
+* [validate](#validate)
+
 ### Constructor
 
 To create a new mapper, use the constructor and supply the following parameters:
