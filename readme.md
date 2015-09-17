@@ -237,8 +237,101 @@ catsMapper.get(animalId, function (err, catsModel) {
 
 ### #parse
 
+The parse method is used for parsing a JSON string to a properly typed Javascript object that aligns with a mapping. This method takes into account the [dynamic mapping](https://www.elastic.co/guide/en/elasticsearch/guide/current/dynamic-mapping.html) specified for the mapping and returns an object as would be stored in Elasticsearch.
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var json = requestJSONFromSomewhere();
+
+catsMapper.parse(json, function (err, catsModel) {
+  if (err) {
+    console.error(err);
+  }
+
+  if (catsModel) {
+    console.log('successfully parsed cat %d', catsModel.animalId);
+    console.log(catsModel);
+  }
+});
+```
+
 ### #update
 
+The update method allows one to update an existing document within Elasticsearch. A partial document will be updated, as expected, without problems. This method will return an error in the event that the document does not exist.
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+
+var animalId = 12345;
+
+catsMapper.update(
+  animalId,
+  {
+    birthday : new Date('2012-07-15'),
+    name : 'Hamish the cat'
+  },
+  function (err, updatedCat) {
+    if (err) {
+      console.error(err);
+    }
+
+    console.log('successfully updated cat %d', animalId);
+    console.log(updatedCat);
+  });
+```
+
 ### #upsert
+
+The upsert method works similarly to update, except that if the document does not exist already, it is created.
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+
+var animalId = 12345;
+
+catsMapper.upsert(
+  animalId,
+  {
+    animalId : animalId,
+    birthday : new Date('2012-07-15'),
+    breed : 'manx',
+    name : 'Hamish the cat'
+  },
+  function (err, upsertedCat) {
+    if (err) {
+      console.error(err);
+    }
+
+    console.log('successfully upserted cat %d', animalId);
+    console.log(upsertedCat);
+  });
+```
 
 ### #validate
