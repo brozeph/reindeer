@@ -57,6 +57,7 @@ describe('mapper', function () {
 				};
 			})
 			.get('/test-index/test-type/test-id/_source')
+			.times(2)
 			.reply(200, function (uri, body) {
 				requestBody = body;
 				requestUri = uri;
@@ -69,6 +70,28 @@ describe('mapper', function () {
 				requestUri = uri;
 
 				return JSON.stringify({ identity : mockModel.identity });
+			})
+			.head('/test-index')
+			.reply(404, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return { statusCode : 404 };
+			})
+			.head('/test-index')
+			.reply(200, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+
+				return { statusCode : 200 };
+			})
+			.post('/test-index')
+			.reply(201, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+				isNewIndex = true;
+
+				return { acknowledged : true };
 			})
 			.post('/test-index/test-type?op_type=create')
 			.reply(201, function (uri, body) {
@@ -122,6 +145,14 @@ describe('mapper', function () {
 					updated : true
 				};
 			})
+			.put('/test-index/_mapping/test-type')
+			.reply(201, function (uri, body) {
+				requestBody = body;
+				requestUri = uri;
+				isUpdatedMapping = true;
+
+				return { acknowledged : true };
+			})
 			.put('/test-index/test-type/bad-id?op_type=create')
 			.reply(503, function (uri, body) {
 				requestBody = body;
@@ -159,6 +190,8 @@ describe('mapper', function () {
 					created : true
 				};
 			}),
+		isNewIndex = false,
+		isUpdatedMapping = false,
 		mapper,
 		mockModel,
 		requestBody,
@@ -193,6 +226,8 @@ describe('mapper', function () {
 			}
 		};
 
+		isNewIndex = false;
+		isUpdatedMapping = false;
 		requestBody = null;
 		requestUri = null;
 	});
@@ -287,6 +322,32 @@ describe('mapper', function () {
 			should.exist(err);
 			should.exist(err.message);
 			err.message.should.equal('field rootFloat type is invalid: invalid');
+		});
+	});
+
+	describe('initialization', function () {
+		it('should create index in the event it does not exist', function (done) {
+			mapper._isInitialized = false;
+
+			mapper.get('test-id', function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				isNewIndex.should.be.true;
+
+				return done();
+			});
+		});
+
+		it('should put the mapping in the event the index exists', function (done) {
+			mapper._isInitialized = false;
+
+			mapper.get('test-id', function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				isUpdatedMapping.should.be.true;
+
+				return done();
+			});
 		});
 	});
 
