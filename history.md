@@ -1,6 +1,7 @@
 # v0.2.0 -
 
 * Renamed Schema to Mapper to better reflect data access pattern used
+* Added additional documentation for usage of module
 * Added Mapper#create
 * Added Mapper#delete
 * Added Mapper#get

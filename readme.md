@@ -58,6 +58,8 @@ To create a new mapper, use the constructor and supply the following parameters:
 
 _NOTE:_ In the event that there exists a mapping error (meaning that the mapping contains an invalid type or is not parseable), an `InvalidMappingError` is thrown during construction.
 
+_NOTE:_ Prior to the execution of any CRUD messages, internally the mapper will initialize itself (a one time operation) in order to ensure that the index and mapping supplied properly exist within the target Elasticsearch cluster.
+
 **Example usage:**
 
 ```javascript
