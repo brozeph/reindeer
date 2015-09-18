@@ -56,6 +56,10 @@ To create a new mapper, use the constructor and supply the following parameters:
 * `config` - _(required)_ - this is an object that defines the `_index`, `_type` and optionally additional `server` information for the Elasticsearch instance
 * `mapping` - _(required)_ - this is an object that defines the [Elasticsearch mapping](https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html)
 
+_NOTE:_ In the event that there exists a mapping error (meaning that the mapping contains an invalid type or is not parseable), an `InvalidMappingError` is thrown during construction.
+
+**Example usage:**
+
 ```javascript
 var Mapper = require('reindeer').Mapper;
 
@@ -149,13 +153,15 @@ var config = {
 
 This method can be used to create a new document within Elasticsearch. By default, this method will result in an error if the document already exists within the Elasticsearch server. The document supplied as an argument to the create method will be validated against the mapping that was used to create the instance of the mapper class.
 
-This method accepts three arguments:
+**Usage:** `mapper.create(_id, doc, callback)`
+
+This method accepts the following arguments:
 
 * `_id` - _(optional)_ - this is the `_id` value with which the document will be indexed in Elasticsearch
   * when this value is not supplied, the value from the field matching the `_id.path` specified in the mapping will be used instead
   * if the `_id` is not supplied and there is no `_id.path` specified in the mapping, Elasticsearch will auto-assign a UUID value
     * _NOTE:_ it is strongly recommended that you supply a value for `_id` as without it, there is no way to later retrieve, delete or update documents easily using the mapping object
-* `document` - _(required)_ - this is the document representing what should be created in Elasticsearch
+* `doc` - _(required)_ - this is the document representing what should be created in Elasticsearch
   * the document can be specified as a partial document
   * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
 * `callback` - _(required)_ - a function callback that accepts two arguments:
@@ -175,24 +181,30 @@ var catsMapper = new Mapper({
     /* ... mapping details here ... */
   });
 
-var cat = {
+var doc = {
   animalId : 12345,
   breed : 'manx',
   name : 'Hamish'
 };
 
-catsMapper.create(cat.animalId, cat, function (err, insertedCat) {
+catsMapper.create(doc.animalId, doc, function (err, insertedCat) {
   if (err) {
     console.error(err);
+    return;
   }
 
+  console.log('successfully inserted cat %d', insertedCat.animalId);
   console.log(insertedCat);
 });
 ```
 
 ### #delete
 
-This method can be used to delete an existing document within Elasticsearch and it accepts two arguments:
+This method can be used to delete an existing document within Elasticsearch.
+
+**Usage:** `mapper.delete(_id, callback)`
+
+This method accepts the following arguments:
 
 * `_id` - _(required)_ - this is the `_id` value with which the document has been indexed in Elasticsearch
 * `callback` - _(required)_ - a function callback that accepts a single argument:
@@ -216,6 +228,7 @@ var animalId = 12345;
 catsMapper.delete(animalId, function (err) {
   if (err) {
     console.error(err);
+    return;
   }
 
   console.log('successfully deleted %d', animalId);
@@ -224,7 +237,11 @@ catsMapper.delete(animalId, function (err) {
 
 ### #get
 
-This method can be used to retrieve a single existing document from Elasticsearch and it accepts two arguments:
+This method can be used to retrieve a single existing document from Elasticsearch.
+
+**Usage:** `mapper.get(_id, callback)`
+
+This method accepts the following arguments:
 
 * `_id` - _(required)_ - this is the `_id` value with which the document has been indexed in Elasticsearch
 * `callback` - _(required)_ - a function callback that accepts two arguments:
@@ -249,6 +266,7 @@ var animalId = 12345;
 catsMapper.get(animalId, function (err, catsModel) {
   if (err) {
     console.error(err);
+    return;
   }
 
   if (catsModel) {
@@ -262,7 +280,20 @@ catsMapper.get(animalId, function (err, catsModel) {
 
 ### #parse
 
-The parse method is used for parsing a JSON string to a properly typed Javascript object that aligns with a mapping. This method takes into account the [dynamic mapping](https://www.elastic.co/guide/en/elasticsearch/guide/current/dynamic-mapping.html) specified for the mapping and returns an object as would be stored in Elasticsearch.
+The parse method is used for parsing either a JSON string or a Javascript object and coercing fields to a properly typed Javascript object that aligns with the mapping type specification. This method takes into account the [dynamic mapping](https://www.elastic.co/guide/en/elasticsearch/guide/current/dynamic-mapping.html) specified for the mapping and returns an object as would be stored in Elasticsearch.
+
+_NOTE:_ This method is used internally by CRUD methods within this module in order to ensure properly typed return values (i.e. so that date types are typed as Date objects, etc.).
+
+**Usage:** `mapper.parse(json, callback)`
+
+This method accepts the following arguments:
+
+* `json` - _(required)_ - this can be either a JSON string or a Javascript object containing the document to be parsed
+* `callback` - _(required)_ - a function callback that accepts two arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `model` - the parsed model that is properly typed according to the mapping specification
+
+The following example demonstrates the parsing of a JSON string:
 
 ```javascript
 var Mapper = require('reindeer').Mapper;
@@ -275,11 +306,12 @@ var catsMapper = new Mapper({
     /* ... mapping details here ... */
   });
 
-var json = requestJSONFromSomewhere();
+var json = requestJSONStringFromSomewhere();
 
 catsMapper.parse(json, function (err, catsModel) {
   if (err) {
     console.error(err);
+    return;
   }
 
   if (catsModel) {
@@ -291,7 +323,21 @@ catsMapper.parse(json, function (err, catsModel) {
 
 ### #update
 
-The update method allows one to update an existing document within Elasticsearch. A partial document will be updated, as expected, without problems. This method will return an error in the event that the document does not exist.
+The update method allows one to update an existing document within Elasticsearch. A partial document will be accepted as well, but note that if there are required fields that are missing from the partial document, the method will return an error. This method will return an error in the event that the document does not exist.
+
+**Usage:** `mapper.update(_id, doc, callback)`
+
+This method accepts the following arguments:
+
+* `_id` - _(optional)_ - this is the `_id` value with which the document will be updated in Elasticsearch
+  * when this value is not supplied, the value from the field matching the `_id.path` specified in the mapping will be used instead
+  * if the `_id` is not supplied and there is no `_id.path` specified in the mapping, an error will be returned
+* `doc` - _(required)_ - this is the document representing what should be updated in Elasticsearch
+  * the document can be specified as a partial document
+  * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts two arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `updatedModel` - the validated model that is properly typed according to the mapping specification
 
 ```javascript
 var Mapper = require('reindeer').Mapper;
@@ -310,12 +356,13 @@ var animalId = 12345;
 catsMapper.update(
   animalId,
   {
-    birthday : new Date('2012-07-15'),
+    birthday : new Date('2014-04-20'),
     name : 'Hamish the cat'
   },
   function (err, updatedCat) {
     if (err) {
       console.error(err);
+      return;
     }
 
     console.log('successfully updated cat %d', animalId);
@@ -326,6 +373,20 @@ catsMapper.update(
 ### #upsert
 
 The upsert method works similarly to update, except that if the document does not exist already, it is created.
+
+**Usage:** `mapper.upsert(_id, doc, callback)`
+
+This method accepts the following arguments:
+
+* `_id` - _(optional)_ - this is the `_id` value with which the document will be updated in Elasticsearch
+  * when this value is not supplied, the value from the field matching the `_id.path` specified in the mapping will be used instead
+  * if the `_id` is not supplied and there is no `_id.path` specified in the mapping, an error will be returned
+* `doc` - _(required)_ - this is the document representing what should be updated in Elasticsearch
+  * the document can be specified as a partial document
+  * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts two arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `updatedModel` - the validated model that is properly typed according to the mapping specification
 
 ```javascript
 var Mapper = require('reindeer').Mapper;
@@ -345,13 +406,14 @@ catsMapper.upsert(
   animalId,
   {
     animalId : animalId,
-    birthday : new Date('2012-07-15'),
+    birthday : new Date('2014-04-20'),
     breed : 'manx',
     name : 'Hamish the cat'
   },
   function (err, upsertedCat) {
     if (err) {
       console.error(err);
+      return;
     }
 
     console.log('successfully upserted cat %d', animalId);
@@ -360,3 +422,63 @@ catsMapper.upsert(
 ```
 
 ### #validate
+
+The validate method validates a document according to a mapping specification. This method handles the following error scenarios:
+
+* determines if model is empty
+* determines if model field values do not match and are not able to be casted to the specified mapping type
+* detects any missing required fields and returns an `InvalidModelError` error
+* detects an extraneous fields from `dynamic=strict` mapping types and returns an `InvalidModelError` error
+
+Additionally, the validate method performs the following:
+
+* captures value for field specified in `_id.path` of mapping (if applicable)
+* removes any extraneous fields from `dynamic=false` mapping types
+
+_NOTE:_ This method is used internally by CRUD methods within this module in order to ensure the document that is being operated on is valid prior to transmission to Elasticsearch.
+
+**Usage:** `mapper.validate(doc, callback)`
+
+This method accepts the following arguments:
+
+* `doc` - _(required)_ - this is the document to be validated
+  * the document can be specified as a partial model
+  * _NOTE:_ if required fields are missing, an `InvalidModelError` will be returned
+  * _NOTE:_ if an `_id.path` is specified in the mapping, and a value is found matching that field in the supplied document, it will be returned in the modelId parameter
+* `callback` - _(required)_ - a function callback that accepts three arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `validatedModel` - the validated model resulting from the operation
+  * `modelId` - if `_id.path` is specified in the mapping and the field exists in the `doc` supplied, this is the value of the `_id`, otherwise, `null`
+
+The following demonstrates use of the validate method:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var doc = {
+  animalId : 12345,
+  birthday : new Date('2014-04-20'),
+  name : 'Hamish'
+};
+
+catsMapper.validate(doc, function (err, catsModel, animalId) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  if (catsModel) {
+    // note, unless _id.path is specified in the mapping, animalId is null
+    console.log('successfully validated cat %d', catsModel.animalId);
+    console.log(catsModel);
+  }
+});
+```
