@@ -170,6 +170,9 @@ describe('mapper', function () {
 			_type : 'test-type'
 		}, testMapping);
 
+		// monkey patch initialize
+		mapper._isInitialized = true;
+
 		mockModel = {
 			strictDynamicSubDocument : {
 				someDate : new Date(),
