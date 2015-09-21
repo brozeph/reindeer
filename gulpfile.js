@@ -50,12 +50,23 @@ gulp.task('test-coverage', ['clean'], function () {
 });
 
 
+gulp.task('test-integration', function () {
+	return gulp
+		.src(['./test/integration/**/*.js'], { read : false })
+		.pipe(mocha({
+			checkLeaks : false,
+			reporter : 'spec',
+			ui : 'bdd'
+		}));
+});
+
+
 gulp.task('test-unit', function () {
 	return gulp
-	.src(['./test/lib/**/*.js'], { read : false })
-	.pipe(mocha({
-		checkLeaks : true,
-		reporter : 'spec',
-		ui : 'bdd'
-	}));
+		.src(['./test/lib/**/*.js'], { read : false })
+		.pipe(mocha({
+			checkLeaks : true,
+			reporter : 'spec',
+			ui : 'bdd'
+		}));
 });
