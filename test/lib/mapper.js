@@ -7,195 +7,198 @@ var
 	testMapping = require('../test-mapping.json');
 
 
+// jshint -W030
 describe('mapper', function () {
 	'use strict';
 
 	var
-		elasticsearch = nock('http://localhost:9200')
-			.delete('/test-index/test-type/test-id')
-			.reply(202, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {};
-			})
-			.delete('/test-index/test-type/bad-id')
-			.reply(404, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {
-					message : 'not found',
-					statusCode : 404
-				};
-			})
-			.delete('/test-index/test-type/test-id?timeout=1m')
-			.reply(202, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {};
-			})
-			.get('/test-index/test-type/bad-id/_source')
-			.reply(404, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {
-					message : 'not found',
-					statusCode : 404
-				};
-			})
-			.get('/test-index/test-type/really-bad-id/_source')
-			.reply(503, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {
-					message : 'server unavailable',
-					statusCode : 503
-				};
-			})
-			.get('/test-index/test-type/test-id/_source')
-			.times(3)
-			.reply(200, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return JSON.stringify(mockModel);
-			})
-			.get('/test-index/test-type/test-id/_source?fields=identity')
-			.reply(200, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return JSON.stringify({ identity : mockModel.identity });
-			})
-			.head('/test-index')
-			.reply(404, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return { statusCode : 404 };
-			})
-			.head('/test-index')
-			.reply(200, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return { statusCode : 200 };
-			})
-			.post('/test-index')
-			.reply(201, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-				isNewIndex = true;
-
-				return { acknowledged : true };
-			})
-			.post('/test-index/test-type?op_type=create')
-			.reply(201, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {
-					_index : 'test-index',
-					_type : 'test-type',
-					_id : 'random',
-					_version : 1,
-					created : true
-				};
-			})
-			.post('/test-index/test-type/bad-id/_update')
-			.times(2) // replicated for upsert and update
-			.reply(503, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {
-					message : 'server unavailable',
-					statusCode : 503
-				};
-			})
-			.post('/test-index/test-type/test-id/_update')
-			.times(2) // replicated for upsert and update
-			.reply(201, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {
-					_index : 'test-index',
-					_type : 'test-type',
-					_id : 'test-id',
-					_version : 1,
-					updated : true
-				};
-			})
-			.post('/test-index/test-type/test-id/_update?retry_on_conflict=3')
-			.times(2) // replicated for upsert and update
-			.reply(201, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {
-					_index : 'test-index',
-					_type : 'test-type',
-					_id : 'test-id',
-					_version : 1,
-					updated : true
-				};
-			})
-			.put('/test-index/_mapping/test-type')
-			.reply(201, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-				isUpdatedMapping = true;
-
-				return { acknowledged : true };
-			})
-			.put('/test-index/test-type/bad-id?op_type=create')
-			.reply(503, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {
-					message : 'server unavailable',
-					statusCode : 503
-				};
-			})
-			.put('/test-index/test-type/test-id?op_type=create')
-			.times(2) // two tests use this
-			.reply(201, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {
-					_index : 'test-index',
-					_type : 'test-type',
-					_id : 'test-id',
-					_version : 1,
-					created : true
-				};
-			})
-			.put('/test-index/test-type/test-id?ttl=1d&op_type=create')
-			.reply(201, function (uri, body) {
-				requestBody = body;
-				requestUri = uri;
-
-				return {
-					_index : 'test-index',
-					_type : 'test-type',
-					_id : 'test-id',
-					_version : 1,
-					created : true
-				};
-			}),
 		isNewIndex = false,
 		isUpdatedMapping = false,
 		mapper,
 		mockModel,
 		requestBody,
 		requestUri;
+
+	// configure nock
+	nock('http://localhost:9200')
+		.delete('/test-index/test-type/test-id')
+		.reply(202, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {};
+		})
+		.delete('/test-index/test-type/bad-id')
+		.reply(404, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				message : 'not found',
+				statusCode : 404
+			};
+		})
+		.delete('/test-index/test-type/test-id?timeout=1m')
+		.reply(202, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {};
+		})
+		.get('/test-index/test-type/bad-id/_source')
+		.reply(404, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				message : 'not found',
+				statusCode : 404
+			};
+		})
+		.get('/test-index/test-type/really-bad-id/_source')
+		.reply(503, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				message : 'server unavailable',
+				statusCode : 503
+			};
+		})
+		.get('/test-index/test-type/test-id/_source')
+		.times(3)
+		.reply(200, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return JSON.stringify(mockModel);
+		})
+		.get('/test-index/test-type/test-id/_source?fields=identity')
+		.reply(200, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return JSON.stringify({ identity : mockModel.identity });
+		})
+		.head('/test-index')
+		.reply(404, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return { statusCode : 404 };
+		})
+		.head('/test-index')
+		.reply(200, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return { statusCode : 200 };
+		})
+		.post('/test-index')
+		.reply(201, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+			isNewIndex = true;
+
+			return { acknowledged : true };
+		})
+		.post('/test-index/test-type?op_type=create')
+		.reply(201, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				_index : 'test-index',
+				_type : 'test-type',
+				_id : 'random',
+				_version : 1,
+				created : true
+			};
+		})
+		.post('/test-index/test-type/bad-id/_update')
+		.times(2) // replicated for upsert and update
+		.reply(503, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				message : 'server unavailable',
+				statusCode : 503
+			};
+		})
+		.post('/test-index/test-type/test-id/_update')
+		.times(2) // replicated for upsert and update
+		.reply(201, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				_index : 'test-index',
+				_type : 'test-type',
+				_id : 'test-id',
+				_version : 1,
+				updated : true
+			};
+		})
+		.post('/test-index/test-type/test-id/_update?retry_on_conflict=3')
+		.times(2) // replicated for upsert and update
+		.reply(201, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				_index : 'test-index',
+				_type : 'test-type',
+				_id : 'test-id',
+				_version : 1,
+				updated : true
+			};
+		})
+		.put('/test-index/_mapping/test-type')
+		.reply(201, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+			isUpdatedMapping = true;
+
+			return { acknowledged : true };
+		})
+		.put('/test-index/test-type/bad-id?op_type=create')
+		.reply(503, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				message : 'server unavailable',
+				statusCode : 503
+			};
+		})
+		.put('/test-index/test-type/test-id?op_type=create')
+		.times(2) // two tests use this
+		.reply(201, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				_index : 'test-index',
+				_type : 'test-type',
+				_id : 'test-id',
+				_version : 1,
+				created : true
+			};
+		})
+		.put('/test-index/test-type/test-id?ttl=1d&op_type=create')
+		.reply(201, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				_index : 'test-index',
+				_type : 'test-type',
+				_id : 'test-id',
+				_version : 1,
+				created : true
+			};
+		});
 
 	beforeEach(function () {
 		mapper = new Mapper({
@@ -709,7 +712,7 @@ describe('mapper', function () {
 				should.exist(err.statusCode);
 				err.statusCode.should.equal(503);
 				requestUri.should.equal('/test-index/test-type/bad-id/_update');
-				should.exist(requestBody)
+				should.exist(requestBody);
 				requestBody.should.not.contain('doc_as_upsert');
 
 				return done();
@@ -725,7 +728,7 @@ describe('mapper', function () {
 				(result.strictDynamicSubDocument.someDate instanceof Date)
 					.should.be.true;
 				requestUri.should.equal('/test-index/test-type/test-id/_update');
-				should.exist(requestBody)
+				should.exist(requestBody);
 				requestBody.should.not.contain('doc_as_upsert');
 
 				return done();
@@ -742,7 +745,7 @@ describe('mapper', function () {
 				should.not.exist(err);
 				should.exist(result);
 				requestUri.should.equal('/test-index/test-type/test-id/_update?retry_on_conflict=3');
-				should.exist(requestBody)
+				should.exist(requestBody);
 				requestBody.should.not.contain('doc_as_upsert');
 
 				return done();
@@ -769,7 +772,7 @@ describe('mapper', function () {
 				should.exist(err.statusCode);
 				err.statusCode.should.equal(503);
 				requestUri.should.equal('/test-index/test-type/bad-id/_update');
-				should.exist(requestBody)
+				should.exist(requestBody);
 				requestBody.should.contain('doc_as_upsert');
 
 				return done();
@@ -785,7 +788,7 @@ describe('mapper', function () {
 				(result.strictDynamicSubDocument.someDate instanceof Date)
 					.should.be.true;
 				requestUri.should.equal('/test-index/test-type/test-id/_update');
-				should.exist(requestBody)
+				should.exist(requestBody);
 				requestBody.should.contain('doc_as_upsert');
 
 				return done();
@@ -802,7 +805,7 @@ describe('mapper', function () {
 				should.not.exist(err);
 				should.exist(result);
 				requestUri.should.equal('/test-index/test-type/test-id/_update?retry_on_conflict=3');
-				should.exist(requestBody)
+				should.exist(requestBody);
 				requestBody.should.contain('doc_as_upsert');
 
 				return done();
