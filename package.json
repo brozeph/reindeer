@@ -32,6 +32,6 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "gulp coveralls"
+    "test": "gulp test-all"
   }
 }
