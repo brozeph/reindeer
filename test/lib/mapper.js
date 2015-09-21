@@ -57,7 +57,7 @@ describe('mapper', function () {
 				};
 			})
 			.get('/test-index/test-type/test-id/_source')
-			.times(2)
+			.times(3)
 			.reply(200, function (uri, body) {
 				requestBody = body;
 				requestUri = uri;
