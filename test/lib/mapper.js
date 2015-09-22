@@ -395,7 +395,7 @@ describe('mapper', function () {
 		it('should properly POST when _id is not supplied', function (done) {
 			delete mockModel.identity;
 
-			mapper.create(mockModel, function (err, result) {
+			mapper.create(mockModel, function (err, result, resultId) {
 				should.not.exist(err);
 				should.exist(result);
 				should.exist(result.strictDynamicSubDocument);
@@ -403,15 +403,18 @@ describe('mapper', function () {
 				(result.strictDynamicSubDocument.someDate instanceof Date)
 					.should.be.true;
 				requestUri.should.equal('/test-index/test-type?op_type=create');
+				should.exist(resultId);
+				resultId.should.equal('random');
 
 				return done();
 			});
 		});
 
 		it('should properly PUT when _id.path is supplied', function (done) {
-			mapper.create(mockModel, function (err, result) {
+			mapper.create(mockModel, function (err, result, resultId) {
 				should.not.exist(err);
 				should.exist(result);
+				should.exist(resultId);
 
 				requestUri.should.equal('/test-index/test-type/test-id?op_type=create');
 
@@ -420,14 +423,18 @@ describe('mapper', function () {
 		});
 
 		it('should properly support _id overloaded as options', function (done) {
+			// remove identity column to ensure _id.path is not mapped
+			delete mockModel.identity;
+
 			mapper.create({
 					_id : 'test-id',
 					ttl : '1d'
 				},
 				mockModel,
-				function (err, result) {
+				function (err, result, resultId) {
 					should.not.exist(err);
 					should.exist(result);
+					should.not.exist(resultId);
 					should.exist(result.strictDynamicSubDocument);
 					should.exist(result.strictDynamicSubDocument.someDate);
 					(result.strictDynamicSubDocument.someDate instanceof Date)
