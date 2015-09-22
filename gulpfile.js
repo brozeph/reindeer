@@ -29,11 +29,6 @@ gulp.task('jshint', function () {
 });
 
 
-gulp.task('test-all', function (callback) {
-	sequence('clean', 'jshint', 'test-coverage', callback);
-});
-
-
 gulp.task('test-coverage', ['clean'], function () {
 	return gulp
 		.src(['./lib/**/*.js'])
