@@ -169,6 +169,7 @@ This method accepts the following arguments:
 * `callback` - _(required)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
   * `insertedModel` - the validated model that is properly typed according to the mapping specification
+  * `insertedModelId` - if the `_id` property is not specified, this will contain the value created by Elasticsearch, otherwise it is null
 
 The following example demonstrates the use of the `#create` method on a mapping for cats:
 
