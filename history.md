@@ -1,4 +1,8 @@
-# v0.2.0 -
+# v0.2.1 - 09.22.2015
+
+* Added coveralls.io support
+
+# v0.2.0 - 09.22.2015
 
 * Renamed Schema to Mapper to better reflect data access pattern used
 * Added additional documentation for usage of module
