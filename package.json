@@ -33,6 +33,6 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "gulp test-all"
+    "test": "gulp jshint && gulp test-coverage && gulp test-integration"
   }
 }
