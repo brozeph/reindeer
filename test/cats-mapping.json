@@ -17,6 +17,7 @@
       "type": "string"
     },
     "attributes": {
+      "dynamic": false,
       "properties": {
         "height": {
           "type": "float"

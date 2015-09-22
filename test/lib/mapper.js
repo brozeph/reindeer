@@ -200,6 +200,12 @@ describe('mapper', function () {
 			};
 		});
 
+	after(function () {
+		nock.cleanAll();
+		nock.restore();
+		nock.enableNetConnect();
+	});
+
 	beforeEach(function () {
 		mapper = new Mapper({
 			_index : 'test-index',
