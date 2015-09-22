@@ -2,7 +2,7 @@
   "name": "reindeer",
   "description": "Provides schema enforcement based on Elasticsearch type mappings",
   "main": "./lib/index.js",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Joshua Thomas (http://github.com/brozeph)",
   "engines": {
     "node": ">= 0.8.0"
@@ -33,6 +33,6 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "gulp jshint && gulp test-coverage && gulp test-integration"
+    "test": "gulp jshint && gulp test-integration && gulp coveralls"
   }
 }
