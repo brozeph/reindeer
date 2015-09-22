@@ -1,4 +1,7 @@
 {
+	"_id": {
+		"path": "identity.docId"
+	},
 	"properties": {
 		"strictDynamicSubDocument": {
 			"dynamic": "strict",
@@ -28,6 +31,9 @@
 			"properties": {
 				"anotherInteger": {
 					"type": "integer"
+				},
+				"someBoolean": {
+					"type": "boolean"
 				}
 			}
 		},
@@ -36,6 +42,13 @@
 		},
 		"rootGeoPoint": {
 			"type": "geo_point"
+		},
+		"identity": {
+			"properties": {
+				"docId": {
+					"type": "string"
+				}
+			}
 		}
 	}
 }

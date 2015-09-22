@@ -2,7 +2,7 @@
   "name": "reindeer",
   "description": "Provides schema enforcement based on Elasticsearch type mappings",
   "main": "./lib/index.js",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Joshua Thomas (http://github.com/brozeph)",
   "engines": {
     "node": ">= 0.8.0"
@@ -16,7 +16,7 @@
   "repository": "git://github.com/brozeph/reindeer.git",
   "homepage": "http://github.com/brozeph/reindeer",
   "dependencies": {
-    "es": "^0.4.5"
+    "es": "^0.4.7"
   },
   "devDependencies": {
     "chai": "^3.2.0",
@@ -27,13 +27,12 @@
     "gulp-jshint": "^1.11.2",
     "gulp-mocha": "^2.1.3",
     "jshint-stylish": "^2.0.1",
-    "run-sequence": "^1.1.2"
+    "nock": "^2.11.0",
+    "run-sequence": "^1.1.2",
+    "uuid": "^2.0.1"
   },
-  "license": {
-    "type": "MIT",
-    "url": "http://opensource.org/licenses/MIT"
-  },
+  "license": "MIT",
   "scripts": {
-    "test": "gulp coveralls"
+    "test": "gulp jshint && gulp test-coverage && gulp test-integration"
   }
 }

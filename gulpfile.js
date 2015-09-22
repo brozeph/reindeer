@@ -29,11 +29,6 @@ gulp.task('jshint', function () {
 });
 
 
-gulp.task('test-all', function (callback) {
-	sequence('clean', 'jshint', 'test-coverage', callback);
-});
-
-
 gulp.task('test-coverage', ['clean'], function () {
 	return gulp
 		.src(['./lib/**/*.js'])
@@ -50,12 +45,23 @@ gulp.task('test-coverage', ['clean'], function () {
 });
 
 
+gulp.task('test-integration', function () {
+	return gulp
+		.src(['./test/integration/**/*.js'], { read : false })
+		.pipe(mocha({
+			checkLeaks : false,
+			reporter : 'spec',
+			ui : 'bdd'
+		}));
+});
+
+
 gulp.task('test-unit', function () {
 	return gulp
-	.src(['./test/lib/**/*.js'], { read : false })
-	.pipe(mocha({
-		checkLeaks : true,
-		reporter : 'spec',
-		ui : 'bdd'
-	}));
+		.src(['./test/lib/**/*.js'], { read : false })
+		.pipe(mocha({
+			checkLeaks : true,
+			reporter : 'spec',
+			ui : 'bdd'
+		}));
 });

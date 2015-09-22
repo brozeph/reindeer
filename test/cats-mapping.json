@@ -1,0 +1,31 @@
+{
+  "dynamic": false,
+  "properties": {
+    "animalId": {
+      "type": "string"
+    },
+    "birthday": {
+      "type": "date",
+      "format": "dateOptionalTime"
+    },
+    "breed": {
+      "required": true,
+      "type": "string"
+    },
+    "name": {
+      "required": true,
+      "type": "string"
+    },
+    "attributes": {
+      "dynamic": false,
+      "properties": {
+        "height": {
+          "type": "float"
+        },
+        "weight" : {
+          "type": "float"
+        }
+      }
+    }
+  }
+}
