@@ -38,11 +38,11 @@ npm install reindeer
 
 #### Bulk CRUD Operations
 
-* bulkCreate _(coming soon)_
-* bulkDelete _(coming soon)_
-* bulkGet _(coming soon)_
-* bulkUpdate _(coming soon)_
-* bulkUpsert _(coming soon)_
+* [bulkCreate](#bulkcreate)
+* [bulkDelete](#bulkdelete)
+* [bulkGet](#bulkget)
+* [bulkUpdate](#bulkupdate)
+* [bulkUpsert](#bulkupsert)
 
 #### Model Parsing and Validation
 
@@ -350,101 +350,6 @@ This method accepts the following arguments:
   * `err` - populated with details in the event of an error during the operation
   * `updatedModel` - the validated model that is properly typed according to the mapping specification
 
-The following example demonstrates the parsing of a JSON string:
-
-```javascript
-var Mapper = require('reindeer').Mapper;
-
-// create a cats Elasticsearch data mapper
-var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
-  }, {
-    /* ... mapping details here ... */
-  });
-
-var json = requestJSONStringFromSomewhere();
-
-catsMapper.parse(json, function (err, catsModel) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  if (catsModel) {
-    console.log('successfully parsed cat %d', catsModel.animalId);
-    console.log(catsModel);
-  }
-});
-```
-
-### #update
-
-The update method allows one to update an existing document within Elasticsearch. A partial document will be accepted as well, but note that if there are required fields that are missing from the partial document, the method will return an error. This method will return an error in the event that the document does not exist.
-
-**Usage:** `mapper.update(_id, doc, callback)`
-
-This method accepts the following arguments:
-
-* `_id` - _(optional)_ - this is the `_id` value with which the document will be updated in Elasticsearch
-  * when this value is not supplied, the value from the field matching the `_id.path` specified in the mapping will be used instead
-  * if the `_id` is not supplied and there is no `_id.path` specified in the mapping, an error will be returned
-* `doc` - _(required)_ - this is the document representing what should be updated in Elasticsearch
-  * the document can be specified as a partial document
-  * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts two arguments:
-  * `err` - populated with details in the event of an error during the operation
-  * `updatedModel` - the validated model that is properly typed according to the mapping specification
-
-```javascript
-var Mapper = require('reindeer').Mapper;
-
-// create a cats Elasticsearch data mapper
-var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
-  }, {
-    /* ... mapping details here ... */
-  });
-
-
-var animalId = 12345;
-
-catsMapper.update(
-  animalId,
-  {
-    birthday : new Date('2014-04-20'),
-    name : 'Hamish the cat'
-  },
-  function (err, updatedCat) {
-    if (err) {
-      console.error(err);
-      return;
-    }
-
-    console.log('successfully updated cat %d', animalId);
-    console.log(updatedCat);
-  });
-```
-
-### #upsert
-
-The upsert method works similarly to update, except that if the document does not exist already, it is created.
-
-**Usage:** `mapper.upsert(_id, doc, callback)`
-
-This method accepts the following arguments:
-
-* `_id` - _(optional)_ - this is the `_id` value with which the document will be updated in Elasticsearch
-  * when this value is not supplied, the value from the field matching the `_id.path` specified in the mapping will be used instead
-  * if the `_id` is not supplied and there is no `_id.path` specified in the mapping, an error will be returned
-* `doc` - _(required)_ - this is the document representing what should be updated in Elasticsearch
-  * the document can be specified as a partial document
-  * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts two arguments:
-  * `err` - populated with details in the event of an error during the operation
-  * `updatedModel` - the validated model that is properly typed according to the mapping specification
-
 ```javascript
 var Mapper = require('reindeer').Mapper;
 
@@ -476,6 +381,250 @@ catsMapper.upsert(
     console.log('successfully upserted cat %d', animalId);
     console.log(upsertedCat);
   });
+```
+
+### Bulk CRUD Operations
+
+#### #bulkCreate
+
+This method can be used to index multiple documents within Elasticsearch. By default, this method will result in an error if any of the documents already exist within the Elasticsearch server. Each document supplied will be validated against the mapping that was used to create the instance of the mapper class.
+
+**Usage:** `mapper.bulkCreate(idList, docList, callback)`
+
+This method accepts the following arguments:
+
+* `idList` - _(optional)_ - an array of _ids in the same order that should be applied to the array of documents supplied as the `docList` parameter value
+  * when the `idList` property is not supplied, the value from the field matching the `_id.path` for each document in `docList` (if specified in the mapping) will be used instead
+  * if the `idList` is not supplied and there is no `_id.path` specified in the mapping, Elasticsearch will auto-assign a value
+    * _NOTE:_ it is strongly recommended that you ensure a value for `_id` is supplied for each document as without it, there is no way to later retrieve, delete or update documents easily using the mapping object
+* `docList` - _(required)_ - this is an array of documents to index within Elasticsearch
+  * _NOTE:_ all fields in each document will be validated against the mapping specification prior to calling Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts two arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `insertedModels` - the validated models that are properly typed according to the mapping specification
+
+The following example demonstrates the use of the `#bulkCreate` method on a mapping for cats:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var docList = [{
+    animalId : 12345,
+    breed : 'manx',
+    name : 'Hamish'
+  }, {
+    animalId : 54321,
+    breed : 'siamese',
+    name : 'Dugald'
+  }];
+
+// example of using Array.map to return an array of _id values
+var idList = docList.map(function (cat) {
+  return cat.animalId;
+});
+
+catsMapper.bulkCreate(idList, docList, function (err, insertedCats) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  console.log('successfully inserted %d cats', insertedCat.length);
+  console.log(insertedCats);
+});
+```
+
+#### #bulkDelete
+
+This method can be used to delete multiple existing documents within Elasticsearch.
+
+**Usage:** `mapper.bulkDelete(idList, callback)`
+
+This method accepts the following arguments:
+
+* `idList` - _(required)_ - this is an array of `_id` values with which the documents that are intended to be removed have been indexed in Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts a single argument:
+  * `err` - populated with details in the event of an error during the operation
+
+The following example demonstrates the use of the `#bulkDelete` method on a mapping for cats:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var idList = [12345, 54321];
+
+catsMapper.bulkDelete(idList, function (err) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  console.log('successfully deleted %d cats', idList.length);
+});
+```
+
+#### #bulkGet
+
+This method can be used to retrieve an array of existing documents from Elasticsearch.
+
+**Usage:** `mapper.bulkGet(idList, callback)`
+
+This method accepts the following arguments:
+
+* `idList` - _(required)_ - this is an array of `_id` values for which documents should be retrieved from Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts two arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `models` - an array of the validated models that are properly typed according to the mapping specification
+    * _NOTE:_ in the event that a document is not found, it is not returned in the models array... if no documents are found at all, the models array will be an empty array
+
+The following example demonstrates the use of the `#bulkGet` method on a mapping for cats:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var idList = [12345, 54321];
+
+catsMapper.bulkGet(idList, function (err, cats) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  console.log('successfully retrieved %d cats', cats.length);
+  console.log(cats);
+});
+```
+
+#### #bulkUpdate
+
+The bulk update method allows one to update multiple existing documents within Elasticsearch. Partial documents will be accepted as well, but note that if there are required fields that are missing from any of the partial documents, the method will return an error. This method will also return an error in the event that any of the documents do not exist.
+
+**Usage:** `mapper.bulkUpdate(idList, docList, callback)`
+
+This method accepts the following arguments:
+
+* `idList` - _(optional)_ - an array of _ids in the same order that should be applied to the array of documents supplied as the `docList` parameter value
+  * when the `idList` property is not supplied, the value from the field matching the `_id.path` for each document in `docList` (if specified in the mapping) will be used instead
+  * if the `idList` is not supplied and there is no `_id.path` specified in the mapping, Elasticsearch will auto-assign a value
+* `docList` - _(required)_ - * `docList` - _(required)_ - this is an array of documents to update within Elasticsearch
+  * any of the documents can be specified as partial documents
+  * _NOTE:_ all fields in each document will be validated against the mapping specification prior to calling Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts two arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `updatedModels` - the updated and validated models that are properly typed according to the mapping specification
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var docList = [{
+    animalId : 12345,
+    birthday : new Date('2014-04-20')
+  }, {
+    animalId : 54321,
+    birthday : new Date('2014-05-09')
+  }];
+
+var idList = docList.map(function (cat) {
+  return cat.animalId;
+});
+
+catsMapper.bulkUpdate(idList, docList, function (err, updatedCats) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  console.log('successfully updated %d cats', updatedCats.length);
+  console.log(updatedCats);
+});
+```
+
+#### #bulkUpsert
+
+The bulk upsert method works similarly to bulk update, except that if the document does not exist already, it is created.
+
+**Usage:** `mapper.bulkUpsert(idList, docList, callback)`
+
+This method accepts the following arguments:
+
+* `idList` - _(optional)_ - an array of _ids in the same order that should be applied to the array of documents supplied as the `docList` parameter value
+  * when the `idList` property is not supplied, the value from the field matching the `_id.path` for each document in `docList` (if specified in the mapping) will be used instead
+  * if the `idList` is not supplied and there is no `_id.path` specified in the mapping, Elasticsearch will auto-assign a value
+* `docList` - _(required)_ - this is an array of documents to update or create if not present within Elasticsearch
+  * any of the documents can be specified as partial documents
+  * _NOTE:_ all fields in each document will be validated against the mapping specification prior to calling Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts two arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `updatedModel` - the validated model that is properly typed according to the mapping specification
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var docList = [{
+    animalId : 12345,
+    birthday : new Date('2014-04-20'),
+    breed : 'manx',
+    name : 'Hamish'
+  }, {
+    animalId : 54321,
+    birthday : new Date('2014-05-09'),
+    breed : 'siamese',
+    name : 'Dugald'
+  }];
+
+var idList = docList.map(function (cat) {
+  return cat.animalId;
+});
+
+catsMapper.bulkUpsert(idList, docList, function (err, upsertedCats) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  console.log('successfully upserted %d cats', upsertedCats.length);
+  console.log(upsertedCats);
+});
 ```
 
 ### Model Parsing and Validation
