@@ -24,6 +24,10 @@ npm install reindeer
 
 * [constructor](#constructor)
 
+#### Search
+
+* search _(coming soon)_
+
 #### Basic CRUD Operations
 
 * [create](#create)
@@ -40,7 +44,7 @@ npm install reindeer
 * bulkUpdate _(coming soon)_
 * bulkUpsert _(coming soon)_
 
-#### Object Parsing and Validation
+#### Model Parsing and Validation
 
 * [parse](#parse)
 * [validate](#validate)
@@ -147,7 +151,9 @@ var config = {
 };
 ```
 
-### #create
+### Basic CRUD Methods
+
+#### #create
 
 This method can be used to create a new document within Elasticsearch. By default, this method will result in an error if the document already exists within the Elasticsearch server. The document supplied as an argument to the create method will be validated against the mapping that was used to create the instance of the mapper class.
 
@@ -197,7 +203,7 @@ catsMapper.create(doc.animalId, doc, function (err, insertedCat) {
 });
 ```
 
-### #delete
+#### #delete
 
 This method can be used to delete an existing document within Elasticsearch.
 
@@ -234,7 +240,7 @@ catsMapper.delete(animalId, function (err) {
 });
 ```
 
-### #get
+#### #get
 
 This method can be used to retrieve a single existing document from Elasticsearch.
 
@@ -277,20 +283,72 @@ catsMapper.get(animalId, function (err, catsModel) {
 });
 ```
 
-### #parse
+#### #update
 
-The parse method is used for parsing either a JSON string or a Javascript object and coercing fields to a properly typed Javascript object that aligns with the mapping type specification. This method takes into account the [dynamic mapping](https://www.elastic.co/guide/en/elasticsearch/guide/current/dynamic-mapping.html) specified for the mapping and returns an object as would be stored in Elasticsearch.
+The update method allows one to update an existing document within Elasticsearch. A partial document will be accepted as well, but note that if there are required fields that are missing from the partial document, the method will return an error. This method will return an error in the event that the document does not exist.
 
-_NOTE:_ This method is used internally by CRUD methods within this module in order to ensure properly typed return values (i.e. so that date types are typed as Date objects, etc.).
-
-**Usage:** `mapper.parse(json, callback)`
+**Usage:** `mapper.update(_id, doc, callback)`
 
 This method accepts the following arguments:
 
-* `json` - _(required)_ - this can be either a JSON string or a Javascript object containing the document to be parsed
+* `_id` - _(optional)_ - this is the `_id` value with which the document will be updated in Elasticsearch
+  * when this value is not supplied, the value from the field matching the `_id.path` specified in the mapping will be used instead
+  * if the `_id` is not supplied and there is no `_id.path` specified in the mapping, an error will be returned
+* `doc` - _(required)_ - this is the document representing what should be updated in Elasticsearch
+  * the document can be specified as a partial document
+  * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
 * `callback` - _(required)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
-  * `model` - the parsed model that is properly typed according to the mapping specification
+  * `updatedModel` - the validated model that is properly typed according to the mapping specification
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+
+var animalId = 12345;
+
+catsMapper.update(
+  animalId,
+  {
+    birthday : new Date('2014-04-20'),
+    name : 'Hamish the cat'
+  },
+  function (err, updatedCat) {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    console.log('successfully updated cat %d', animalId);
+    console.log(updatedCat);
+  });
+```
+
+#### #upsert
+
+The upsert method works similarly to update, except that if the document does not exist already, it is created.
+
+**Usage:** `mapper.upsert(_id, doc, callback)`
+
+This method accepts the following arguments:
+
+* `_id` - _(optional)_ - this is the `_id` value with which the document will be updated in Elasticsearch
+  * when this value is not supplied, the value from the field matching the `_id.path` specified in the mapping will be used instead
+  * if the `_id` is not supplied and there is no `_id.path` specified in the mapping, an error will be returned
+* `doc` - _(required)_ - this is the document representing what should be updated in Elasticsearch
+  * the document can be specified as a partial document
+  * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts two arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `updatedModel` - the validated model that is properly typed according to the mapping specification
 
 The following example demonstrates the parsing of a JSON string:
 
@@ -420,7 +478,52 @@ catsMapper.upsert(
   });
 ```
 
-### #validate
+### Model Parsing and Validation
+
+#### #parse
+
+The parse method is used for parsing either a JSON string or a Javascript object and coercing fields to a properly typed Javascript object that aligns with the mapping type specification. This method takes into account the [dynamic mapping](https://www.elastic.co/guide/en/elasticsearch/guide/current/dynamic-mapping.html) specified for the mapping and returns an object as would be stored in Elasticsearch.
+
+_NOTE:_ This method is used internally by CRUD methods within this module in order to ensure properly typed return values (i.e. so that date types are typed as Date objects, etc.).
+
+**Usage:** `mapper.parse(json, callback)`
+
+This method accepts the following arguments:
+
+* `json` - _(required)_ - this can be either a JSON string or a Javascript object containing the document to be parsed
+* `callback` - _(required)_ - a function callback that accepts two arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `model` - the parsed model that is properly typed according to the mapping specification
+
+The following example demonstrates the parsing of a JSON string:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var json = requestJSONStringFromSomewhere();
+
+catsMapper.parse(json, function (err, catsModel) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  if (catsModel) {
+    console.log('successfully parsed cat %d', catsModel.animalId);
+    console.log(catsModel);
+  }
+});
+```
+
+#### #validate
 
 The validate method validates a document according to a mapping specification. This method handles the following error scenarios:
 
