@@ -402,6 +402,7 @@ This method accepts the following arguments:
 * `callback` - _(required)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
   * `insertedModels` - the validated models that are properly typed according to the mapping specification
+  * `insertedModelIds` - the `_id` property for each document inserted into Elasticsearch in the same order as the array of `insertedModels`
 
 The following example demonstrates the use of the `#bulkCreate` method on a mapping for cats:
 
