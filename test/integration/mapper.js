@@ -49,13 +49,71 @@ describe('mapper', function () {
 		}, catsMapping);
 	});
 
-	/*
 	describe('#bulkCreate', function () {
 		it('should properly create in bulk', function (done) {
+			var
+				docList = [hamish, keelin],
+				idList = docList.map(function (cat) {
+					return cat.animalId;
+				});
 
+			catsMapper.bulkCreate(idList, docList, function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+				result.should.have.length(2);
+				should.exist(result[0]);
+				should.exist(result[1]);
+
+				catsMapper.get(keelin.animalId, function (err, catModel) {
+					should.not.exist(err);
+					should.exist(catModel);
+					should.exist(catModel.name);
+					catModel.name.should.equal('Keelin');
+
+					return done();
+				});
+			});
+		});
+
+		it('should properly create in bulk without ids', function (done) {
+			var docList = [
+				JSON.parse(JSON.stringify(hamish)),
+				JSON.parse(JSON.stringify(keelin)),
+				JSON.parse(JSON.stringify(dugald))
+			];
+
+			delete docList[0].animalId;
+			delete docList[1].animalId;
+
+			catsMapper.bulkCreate(docList, function (err, result, resultIds) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(resultIds);
+				resultIds.should.have.length(3);
+
+				return done();
+			});
 		});
 	});
-	//*/
+
+	describe('#bulkDelete', function () {
+		it('should properly delete in bulk', function (done) {
+			var idList = [hamish, keelin].map(function (cat) {
+				return cat.animalId;
+			});
+
+			catsMapper.bulkDelete(idList, function (err) {
+				should.not.exist(err);
+
+				catsMapper.get(hamish.animalId, function (err, retrievedDoc) {
+					should.not.exist(err);
+					should.not.exist(retrievedDoc);
+
+					return done();
+				});
+			});
+		});
+	});
 
 	describe('#create', function () {
 		it('should properly create', function (done) {
