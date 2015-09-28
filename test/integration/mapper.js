@@ -113,6 +113,37 @@ describe('mapper', function () {
 		});
 	});
 
+	describe('#bulkGet', function () {
+		it('should properly get in bulk', function (done) {
+			var idList = [hamish, keelin].map(function (cat) {
+				return cat.animalId;
+			});
+
+			catsMapper.bulkGet(idList, function (err, catModels) {
+				should.not.exist(err);
+				should.exist(catModels);
+				catModels.should.have.length(2);
+				catModels[0].name.should.equal(hamish.name);
+
+				return done();
+			});
+		});
+
+		it('should properly return empty array when no results are found', function (done) {
+			var idList = [hamish, keelin].map(function (cat) {
+				return cat.name;
+			});
+
+			catsMapper.bulkGet(idList, function (err, catModels) {
+				should.not.exist(err);
+				should.exist(catModels);
+				catModels.should.have.length(0);
+
+				return done();
+			});
+		});
+	});
+
 	describe('#bulkUpdate', function () {
 		it('should not update documents that do not exist, in bulk', function (done) {
 			var

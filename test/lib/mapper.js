@@ -107,7 +107,7 @@ describe('mapper', function () {
 			return { statusCode : 200 };
 		})
 		.post('/_bulk')
-		.times(4) // replicated for bulk create, delete, get, update and upsert
+		.times(4) // replicated for bulk create, delete, update and upsert
 		.reply(201, function (uri, body) {
 			requestBody = body;
 			requestUri = uri;
@@ -117,6 +117,19 @@ describe('mapper', function () {
 				{ create : { _index : 'test-index', _type : 'test-type' } },
 				{ create : { _index : 'test-index', _type : 'test-type' } }
 			]};
+		})
+		.post('/_mget')
+		.reply(200, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				items : [
+					{ animalId : 1 },
+					{ animalId : 2 },
+					{ animalId : 3 }
+				]
+			};
 		})
 		.post('/test-index')
 		.reply(503, function (uri, body) {
@@ -922,6 +935,47 @@ describe('mapper', function () {
 					should.exist(requestBody);
 					should.exist(requestUri);
 					requestUri.should.equal('/_bulk');
+
+					return done();
+				});
+			});
+		});
+
+		describe('#bulkGet', function () {
+			it('should return error when idList is not an array', function (done) {
+				mapper.bulkGet('invalid', function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.name);
+					should.exist(err.parameterName);
+					err.name.should.equal('InvalidParameterError');
+					err.parameterName.should.equal('idList');
+
+					return done();
+				});
+			});
+
+			it('should return error when an id within the idList array is empty', function (done) {
+				mapper.bulkGet([1, null, 3], function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.message);
+					should.exist(err.name);
+					should.exist(err.parameterName);
+					err.message.should.equal('_id at index 1 is null or undefined');
+					err.name.should.equal('InvalidParameterError');
+					err.parameterName.should.equal('idList');
+
+					return done();
+				});
+			});
+
+			it('should properly POST bulk payload', function (done) {
+				mapper.bulkGet([1, 2, 3], function (err) {
+					should.not.exist(err);
+					should.exist(requestBody);
+					should.exist(requestUri);
+					requestUri.should.equal('/_mget');
 
 					return done();
 				});
