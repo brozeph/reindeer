@@ -81,6 +81,17 @@ describe('mapper', function () {
 			return JSON.stringify({ identity : mockModel.identity });
 		})
 		.head('/test-index')
+		.reply(503, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				message : 'server unavailable',
+				statusCode : 503
+			};
+		})
+		.head('/test-index')
+		.times(2) // to support error and success tests below
 		.reply(404, function (uri, body) {
 			requestBody = body;
 			requestUri = uri;
@@ -88,6 +99,7 @@ describe('mapper', function () {
 			return { statusCode : 404 };
 		})
 		.head('/test-index')
+		.times(2) // to support error and success tests below
 		.reply(200, function (uri, body) {
 			requestBody = body;
 			requestUri = uri;
@@ -105,6 +117,16 @@ describe('mapper', function () {
 				{ create : { _index : 'test-index', _type : 'test-type' } },
 				{ create : { _index : 'test-index', _type : 'test-type' } }
 			]};
+		})
+		.post('/test-index')
+		.reply(503, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				message : 'server unavailable',
+				statusCode : 503
+			};
 		})
 		.post('/test-index')
 		.reply(201, function (uri, body) {
@@ -164,6 +186,16 @@ describe('mapper', function () {
 				_id : 'test-id',
 				_version : 1,
 				updated : true
+			};
+		})
+		.put('/test-index/_mapping/test-type')
+		.reply(503, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				message : 'server unavailable',
+				statusCode : 503
 			};
 		})
 		.put('/test-index/_mapping/test-type')
@@ -347,6 +379,31 @@ describe('mapper', function () {
 	});
 
 	describe('initialization', function () {
+		it('should properly bubble error if encountered checking if index exists', function (done) {
+			mapper._isInitialized = false;
+
+			mapper.get('test-id', function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+
+				return done();
+			});
+		});
+
+		it('should properly bubble error if encountered creating index', function (done) {
+			mapper._isInitialized = false;
+
+			mapper.get('test-id', function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.desc);
+				should.exist(err._index);
+				err.desc.should.contain('#initialize');
+
+				return done();
+			});
+		});
+
 		it('should create index in the event it does not exist', function (done) {
 			mapper._isInitialized = false;
 
@@ -354,6 +411,21 @@ describe('mapper', function () {
 				should.not.exist(err);
 				should.exist(result);
 				isNewIndex.should.be.true;
+
+				return done();
+			});
+		});
+
+		it('should properly bubble error if encountered putting mapping', function (done) {
+			mapper._isInitialized = false;
+
+			mapper.delete('test-id', function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.desc);
+				should.exist(err._index);
+				should.exist(err._type);
+				err.desc.should.contain('#initialize');
 
 				return done();
 			});
