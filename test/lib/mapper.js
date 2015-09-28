@@ -107,7 +107,7 @@ describe('mapper', function () {
 			return { statusCode : 200 };
 		})
 		.post('/_bulk')
-		.times(2) // replicated for bulk create, delete, update and upsert
+		.times(4) // replicated for bulk create, delete, get, update and upsert
 		.reply(201, function (uri, body) {
 			requestBody = body;
 			requestUri = uri;
@@ -917,9 +917,8 @@ describe('mapper', function () {
 			});
 
 			it('should properly POST bulk payload', function (done) {
-				mapper.bulkDelete([1, 2, 3], function (err, result) {
+				mapper.bulkDelete([1, 2, 3], function (err) {
 					should.not.exist(err);
-					should.exist(result);
 					should.exist(requestBody);
 					should.exist(requestUri);
 					requestUri.should.equal('/_bulk');
@@ -930,7 +929,48 @@ describe('mapper', function () {
 		});
 
 		describe('#bulkUpdate', function () {
-			/*
+			it('should return error when idList is not an array', function (done) {
+				mapper.bulkUpdate('invalid', [], function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.name);
+					should.exist(err.parameterName);
+					err.name.should.equal('InvalidParameterError');
+					err.parameterName.should.equal('idList');
+
+					return done();
+				});
+			});
+
+			it('should return error when docList is empty', function (done) {
+				mapper.bulkUpdate([], [], function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.name);
+					should.exist(err.parameterName);
+					err.name.should.equal('InvalidParameterError');
+					err.parameterName.should.equal('docList');
+
+					return done();
+				});
+			});
+
+			it('should return error when idList and docList do not match', function (done) {
+				mapper.bulkUpdate(
+					[1, 2, 3],
+					[{ test : true }],
+					function (err, result) {
+						should.exist(err);
+						should.not.exist(result);
+						should.exist(err.name);
+						should.exist(err.parameterName);
+						err.name.should.equal('InvalidParameterError');
+						err.parameterName.should.equal('idList');
+
+						return done();
+					});
+			});
+
 			it('should validate an _id exists for each document in docList', function (done) {
 				var docs = [
 					JSON.parse(JSON.stringify(mockModel)),
@@ -950,7 +990,148 @@ describe('mapper', function () {
 					return done();
 				});
 			});
-			//*/
+
+			it('should validate each document in docList', function (done) {
+				var docs = [
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel))
+				];
+
+				// remove a required field
+				docs[1].strictDynamicSubDocument.someRequiredInteger = undefined;
+
+				mapper.bulkUpdate(docs, function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.name);
+					err.name.should.equal('InvalidModelError');
+
+					return done();
+				});
+			});
+
+			it('should properly POST bulk payload', function (done) {
+				var docs = [
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel))
+				];
+
+				mapper.bulkUpdate(docs, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+					should.exist(requestBody);
+					should.exist(requestUri);
+					requestUri.should.equal('/_bulk');
+					requestBody.should.not.contain('doc_as_upsert');
+
+					return done();
+				});
+			});
+		});
+
+		describe('#bulkUpsert', function () {
+			it('should return error when idList is not an array', function (done) {
+				mapper.bulkUpsert('invalid', [], function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.name);
+					should.exist(err.parameterName);
+					err.name.should.equal('InvalidParameterError');
+					err.parameterName.should.equal('idList');
+
+					return done();
+				});
+			});
+
+			it('should return error when docList is empty', function (done) {
+				mapper.bulkUpsert([], [], function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.name);
+					should.exist(err.parameterName);
+					err.name.should.equal('InvalidParameterError');
+					err.parameterName.should.equal('docList');
+
+					return done();
+				});
+			});
+
+			it('should return error when idList and docList do not match', function (done) {
+				mapper.bulkUpsert(
+					[1, 2, 3],
+					[{ test : true }],
+					function (err, result) {
+						should.exist(err);
+						should.not.exist(result);
+						should.exist(err.name);
+						should.exist(err.parameterName);
+						err.name.should.equal('InvalidParameterError');
+						err.parameterName.should.equal('idList');
+
+						return done();
+					});
+			});
+
+			it('should validate an _id exists for each document in docList', function (done) {
+				var docs = [
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel))
+				];
+
+				// remove a required field
+				delete docs[1].identity;
+
+				mapper.bulkUpsert(docs, function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.message);
+					err.message.should.equal('no _id exists for document at index 1');
+
+					return done();
+				});
+			});
+
+			it('should validate each document in docList', function (done) {
+				var docs = [
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel))
+				];
+
+				// remove a required field
+				docs[1].strictDynamicSubDocument.someRequiredInteger = undefined;
+
+				mapper.bulkUpsert(docs, function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.name);
+					err.name.should.equal('InvalidModelError');
+
+					return done();
+				});
+			});
+
+			it('should properly POST bulk payload', function (done) {
+				var docs = [
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel))
+				];
+
+				mapper.bulkUpsert(docs, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+					should.exist(requestBody);
+					should.exist(requestUri);
+					requestUri.should.equal('/_bulk');
+					requestBody.should.contain('doc_as_upsert');
+
+					return done();
+				});
+			});
 		});
 	});
 
