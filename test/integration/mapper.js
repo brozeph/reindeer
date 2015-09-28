@@ -75,6 +75,23 @@ describe('mapper', function () {
 			});
 		});
 
+		it('should properly error when bulk creating documents that already exist', function (done) {
+			var
+				docList = [hamish, keelin],
+				idList = docList.map(function (cat) {
+					return cat.animalId;
+				});
+
+			catsMapper.bulkCreate(idList, docList, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.statusCode);
+				err.statusCode.should.equal(409);
+
+				return done();
+			});
+		});
+
 		it('should properly create in bulk without ids', function (done) {
 			var docList = [
 				JSON.parse(JSON.stringify(hamish)),
@@ -92,6 +109,112 @@ describe('mapper', function () {
 				resultIds.should.have.length(3);
 
 				return done();
+			});
+		});
+	});
+
+	describe('#bulkUpdate', function () {
+		it('should not update documents that do not exist, in bulk', function (done) {
+			var
+				docList = [
+					JSON.parse(JSON.stringify(hamish)),
+					JSON.parse(JSON.stringify(keelin))
+				],
+				idList = docList.map(function (cat) {
+					return cat.name;
+				});
+
+			docList[0].attributes = {
+				height: 8.6,
+				weight : 16.1
+			};
+
+			docList[1].attributes = {
+				height: 6.2,
+				weight : 14.7
+			};
+
+			catsMapper.bulkUpdate(idList, docList, function (err, result) {
+				should.exist(err);
+				should.not.exist(result);
+				should.exist(err.statusCode);
+				err.statusCode.should.equal(404);
+
+				return done();
+			});
+		});
+
+		it('should update documents in bulk', function (done) {
+			var
+				docList = [
+					JSON.parse(JSON.stringify(hamish)),
+					JSON.parse(JSON.stringify(keelin))
+				],
+				idList = docList.map(function (cat) {
+					return cat.animalId;
+				});
+
+			docList[0].attributes = {
+				height: 8.6,
+				weight : 16.1
+			};
+
+			docList[1].attributes = {
+				height: 6.2,
+				weight : 14.7
+			};
+
+			catsMapper.bulkUpdate(idList, docList, function (err, result, versions) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(versions);
+
+				result.should.have.length(2);
+				should.exist(result[0]);
+				should.exist(result[1]);
+
+				catsMapper.get(keelin.animalId, function (err, catModel) {
+					should.not.exist(err);
+					should.exist(catModel);
+					should.exist(catModel.name);
+					should.exist(catModel.attributes);
+					should.exist(catModel.attributes.height);
+					catModel.name.should.equal('Keelin');
+					catModel.attributes.height.should.equal(6.2);
+
+					return done();
+				});
+			});
+		});
+	});
+
+	describe('#bulkUpsert', function () {
+		it('should upsert documents in bulk', function (done) {
+			var
+				docList = [
+					JSON.parse(JSON.stringify(hamish)),
+					JSON.parse(JSON.stringify(keelin))
+				],
+				idList = docList.map(function (cat) {
+					return cat.name;
+				});
+
+			catsMapper.bulkUpsert(idList, docList, function (err, result, versions) {
+				should.not.exist(err);
+				should.exist(result);
+				should.exist(versions);
+
+				result.should.have.length(2);
+				should.exist(result[0]);
+				should.exist(result[1]);
+
+				catsMapper.get(keelin.name, function (err, catModel) {
+					should.not.exist(err);
+					should.exist(catModel);
+					should.exist(catModel.name);
+
+					return done();
+				});
 			});
 		});
 	});
