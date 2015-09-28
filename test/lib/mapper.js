@@ -95,6 +95,7 @@ describe('mapper', function () {
 			return { statusCode : 200 };
 		})
 		.post('/_bulk')
+		.times(2) // replicated for bulk create, delete, update and upsert
 		.reply(201, function (uri, body) {
 			requestBody = body;
 			requestUri = uri;
@@ -733,6 +734,19 @@ describe('mapper', function () {
 
 	describe('bulk CRUD operations', function () {
 		describe('#bulkCreate', function () {
+			it('should return error when idList is not an array', function (done) {
+				mapper.bulkCreate('invalid', [], function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.name);
+					should.exist(err.parameterName);
+					err.name.should.equal('InvalidParameterError');
+					err.parameterName.should.equal('idList');
+
+					return done();
+				});
+			});
+
 			it('should return error when docList is empty', function (done) {
 				mapper.bulkCreate([], [], function (err, result) {
 					should.exist(err);
@@ -782,6 +796,68 @@ describe('mapper', function () {
 				});
 			});
 
+			it('should properly POST bulk payload', function (done) {
+				var docs = [
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel))
+				];
+
+				mapper.bulkCreate(docs, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+					should.exist(requestBody);
+					should.exist(requestUri);
+					requestUri.should.equal('/_bulk');
+
+					return done();
+				});
+			});
+		});
+
+		describe('#bulkDelete', function () {
+			it('should return error when idList is not an array', function (done) {
+				mapper.bulkDelete('invalid', function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.name);
+					should.exist(err.parameterName);
+					err.name.should.equal('InvalidParameterError');
+					err.parameterName.should.equal('idList');
+
+					return done();
+				});
+			});
+
+			it('should return error when an id within the idList array is empty', function (done) {
+				mapper.bulkDelete([1, null, 3], function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.message);
+					should.exist(err.name);
+					should.exist(err.parameterName);
+					err.message.should.equal('_id at index 1 is null or undefined');
+					err.name.should.equal('InvalidParameterError');
+					err.parameterName.should.equal('idList');
+
+					return done();
+				});
+			});
+
+			it('should properly POST bulk payload', function (done) {
+				mapper.bulkDelete([1, 2, 3], function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+					should.exist(requestBody);
+					should.exist(requestUri);
+					requestUri.should.equal('/_bulk');
+
+					return done();
+				});
+			});
+		});
+
+		describe('#bulkUpdate', function () {
 			/*
 			it('should validate an _id exists for each document in docList', function (done) {
 				var docs = [
@@ -793,7 +869,7 @@ describe('mapper', function () {
 				// remove a required field
 				delete docs[1].identity;
 
-				mapper.bulkCreate(docs, function (err, result) {
+				mapper.bulkUpdate(docs, function (err, result) {
 					should.exist(err);
 					should.not.exist(result);
 					should.exist(err.message);
@@ -803,22 +879,6 @@ describe('mapper', function () {
 				});
 			});
 			//*/
-
-			it('should properly POST bulk payload', function (done) {
-				var docs = [
-					JSON.parse(JSON.stringify(mockModel)),
-					JSON.parse(JSON.stringify(mockModel)),
-					JSON.parse(JSON.stringify(mockModel))
-				];
-
-				mapper.bulkCreate(docs, function (err, result) {
-					should.not.exist(err);
-					should.exist(result);
-					requestUri.should.equal('/_bulk');
-
-					return done();
-				});
-			});
 		});
 	});
 

@@ -49,6 +49,14 @@ describe('mapper', function () {
 		}, catsMapping);
 	});
 
+	/*
+	describe('#bulkCreate', function () {
+		it('should properly create in bulk', function (done) {
+
+		});
+	});
+	//*/
+
 	describe('#create', function () {
 		it('should properly create', function (done) {
 			catsMapper.create(hamish.animalId, hamish, function (err, insertedDoc) {
