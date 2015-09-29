@@ -26,7 +26,7 @@ npm install reindeer
 
 #### Search
 
-* search _(coming soon)_
+* [search](#search)
 
 #### Basic CRUD Operations
 
@@ -149,6 +149,61 @@ var config = {
   _type : 'cats',
   timeout : 60000 // 60 seconds
 };
+```
+
+### Search
+
+For convenience purposes, [request body search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html) is supported via the `#search` method.
+
+#### #search
+
+This method will search for documents within the `_index` and `_type` that were used to construct the mapper.
+
+**Usage:** `mapper.search(options, query, callback)`
+
+This method accepts the following arguments:
+
+* `options` - _(optional)_ - this can be used to supply additional parameters to Elasticsearch related to the query
+* `query` - _(required)_ - this is the query payload that will be sent to Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts three arguments:
+  * `err` - populated with details in the event of an error during the operation
+  * `models` - an array of models matching the search, properly typed according to the mapping supplied to the mapper constructor
+  * `summary` - an object that contains details regarding the search
+    * `total` - the total number of matching documents from Elasticsearch
+
+The following example demonstrates the use of the `#search` method on a mapping for cats:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+// query for all cats
+var query = {
+  from : 0,
+  query : {
+    match_all : {}
+  },
+  size : 50 // grab a limit of 50 documents
+};
+
+catsMapper.search(query, function (err, catModels, summary) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  console.log(
+    'successfully searched cats and found a total of %d matching documents',
+    summary.total);
+  console.log(catModels);
+});
 ```
 
 ### Basic CRUD Methods
