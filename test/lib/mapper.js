@@ -149,6 +149,44 @@ describe('mapper', function () {
 
 			return { acknowledged : true };
 		})
+		.post('/test-index/test-type/_search')
+		.reply(409, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				message : 'test error',
+				statusCode : 409
+			};
+		})
+		.post('/test-index/test-type/_search')
+		.reply(200, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {
+				took : 4,
+				'timed_out' : false,
+				_shards : {
+					total : 5,
+					successful : 5,
+					failed : 0
+				},
+				hits : {
+					total : 1,
+					'max_score' : 1.0,
+					hits : [
+						{
+							_index : 'test-index',
+							_type : 'test-type',
+							_id : mockModel.animalId,
+							_score : 1.0,
+							_source : mockModel
+						}
+					]
+				}
+			};
+		})
 		.post('/test-index/test-type?op_type=create')
 		.reply(201, function (uri, body) {
 			requestBody = body;
@@ -453,6 +491,45 @@ describe('mapper', function () {
 				isUpdatedMapping.should.be.true;
 
 				return done();
+			});
+		});
+	});
+
+	describe('search', function () {
+		describe('#search', function () {
+			it('should bubble errors from search properly', function (done) {
+				mapper.search(
+					{
+						query : { fail : true }
+					},
+					function (err, result, summary) {
+						should.exist(err);
+						should.not.exist(result);
+						should.not.exist(summary);
+						should.exist(requestUri);
+						requestUri.should.equal('/test-index/test-type/_search');
+
+						return done();
+					});
+			});
+
+			it('should search properly', function (done) {
+				mapper.search(
+					{
+						query : { 'match_all' : {} }
+					},
+					function (err, result, summary) {
+						should.not.exist(err);
+						should.exist(result);
+						result.should.have.length(1);
+						should.exist(summary);
+						should.exist(summary.total);
+						summary.total.should.equal(1);
+						should.exist(requestUri);
+						requestUri.should.equal('/test-index/test-type/_search');
+
+						return done();
+					});
 			});
 		});
 	});

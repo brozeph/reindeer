@@ -11,7 +11,11 @@ describe('mapper', function () {
 	'use strict';
 
 	var
-		catsMapper,
+		catsMapper = new Mapper({
+				_index : 'test-index',
+				_type : 'test-type'
+			},
+			catsMapping),
 		dugald = {
 			breed : 'Siamese',
 			name : 'Dugald',
@@ -33,20 +37,13 @@ describe('mapper', function () {
 		};
 
 	after(function (done) {
-		catsMapper._client.indices.deleteIndex(function (err) {
+		return catsMapper._client.indices.deleteIndex(function (err) {
 			if (err) {
 				console.error(err);
 			}
 
-			return done(err);
+			return done();
 		});
-	});
-
-	before(function () {
-		catsMapper = new Mapper({
-			_index : 'test-index',
-			_type : 'test-type'
-		}, catsMapping);
 	});
 
 	describe('#bulkCreate', function () {
@@ -246,6 +243,28 @@ describe('mapper', function () {
 
 					return done();
 				});
+			});
+		});
+	});
+
+	describe('#search', function () {
+		it('should properly search', function (done) {
+			var query = {
+				from : 0,
+				query : {
+					'match_all' : {}
+				},
+				size : 25
+			};
+
+			catsMapper.search(query, function (err, catModels, summary) {
+				should.not.exist(err);
+				should.exist(catModels);
+				should.exist(summary);
+				should.exist(summary.total);
+				catModels.should.have.length(summary.total);
+
+				return done();
 			});
 		});
 	});
