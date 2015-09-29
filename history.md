@@ -1,3 +1,12 @@
+# v0.2.2 - 09.28.2015
+
+* Added Mapper#bulkCreate
+* Added Mapper#bulkDelete
+* Added Mapper#bulkGet
+* Added Mapper#bulkUpdate
+* Added Mapper#bulkUpsert
+* Added Mapper#search
+
 # v0.2.1 - 09.22.2015
 
 * Added coveralls.io support
