@@ -24,7 +24,7 @@ npm install reindeer
 
 * [constructor](#constructor)
 
-#### Search
+#### Basic Search
 
 * [search](#search)
 
@@ -151,7 +151,7 @@ var config = {
 };
 ```
 
-### Search
+### Basic Search
 
 For convenience purposes, [request body search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html) is supported via the `#search` method.
 
