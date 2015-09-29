@@ -1,4 +1,4 @@
-# v0.2.2 -
+# v0.2.2 - 09.28.2015
 
 * Added Mapper#bulkCreate
 * Added Mapper#bulkDelete
