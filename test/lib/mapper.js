@@ -142,6 +142,7 @@ describe('mapper', function () {
 			};
 		})
 		.post('/test-index')
+		.times(2)
 		.reply(201, function (uri, body) {
 			requestBody = body;
 			requestUri = uri;
@@ -1531,6 +1532,19 @@ describe('mapper', function () {
 
 					err.message.should.equal(
 						'strictDynamicSubDocument[1].someRequiredInteger contains an invalid value (not an integer) for type integer');
+
+					return done();
+				});
+			});
+		});
+
+		describe('#verifyConnection', function () {
+			it('should properly initialize and verify connection to elasticsearch', function (done) {
+				mapper._isInitialized = false;
+
+				mapper.verifyConnection(function (err) {
+					should.not.exist(err);
+					mapper._isInitialized.should.be.true;
 
 					return done();
 				});
