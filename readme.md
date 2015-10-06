@@ -20,9 +20,10 @@ npm install reindeer
 
 ## Usage
 
-#### Construction
+#### Initialization
 
 * [constructor](#constructor)
+* [verifyConnection](#verifyconnection)
 
 #### Basic Search
 
@@ -49,7 +50,9 @@ npm install reindeer
 * [parse](#parse)
 * [validate](#validate)
 
-### Constructor
+### Initialization
+
+#### Constructor
 
 To create a new mapper, use the constructor and supply the following parameters:
 
@@ -149,6 +152,38 @@ var config = {
   _type : 'cats',
   timeout : 60000 // 60 seconds
 };
+```
+
+#### #verifyConnection
+
+In order to quickly verify connectivity with Elasticsearch, the `#verifyConnection` method can be used.
+
+**Usage:** `mapper.verifyConnection(callback)`
+
+This method accepts a single argument:
+
+* `callback` - _(required)_ - a function callback that accepts one arguments:
+  * `err` - populated with details in the event of an error during the operation
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+catsMapper.verifyConnection(function (err) {
+  if (err) {
+    console.error('unable to connect to Elasticsearch!');
+    console.error(err);
+  }
+
+  console.log('able to connect to Elasticsearch');
+});
 ```
 
 ### Basic Search

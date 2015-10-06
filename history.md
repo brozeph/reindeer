@@ -1,3 +1,7 @@
+# v0.2.3 - 10.06.2015
+
+* Added Mapper#verifyConnection
+
 # v0.2.2 - 09.28.2015
 
 * Added Mapper#bulkCreate
