@@ -1,3 +1,7 @@
+# v0.2.4 - 10.08.2015
+
+* Added Mapper#analyzedFields
+
 # v0.2.3 - 10.06.2015
 
 * Added Mapper#verifyConnection

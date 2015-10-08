@@ -1268,6 +1268,13 @@ describe('mapper', function () {
 	});
 
 	describe('model parsing and validation', function () {
+		describe('#analyzedFields', function () {
+			it('should properly return analyzedFields', function () {
+				var analyzedFields = mapper.analyzedFields();
+				analyzedFields.should.have.length(2);
+			});
+		});
+
 		describe('#parse', function () {
 			it('should properly fail with invalid JSON', function (done) {
 				mapper.parse('{ invalid json }', function (err, result) {

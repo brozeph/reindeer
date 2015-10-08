@@ -47,6 +47,7 @@ npm install reindeer
 
 #### Model Parsing and Validation
 
+* [analyzedFields](#analyzedfields)
 * [parse](#parse)
 * [validate](#validate)
 
@@ -719,6 +720,28 @@ catsMapper.bulkUpsert(idList, docList, function (err, upsertedCats) {
 ```
 
 ### Model Parsing and Validation
+
+#### #analyzedFields
+
+For building Elasticsearch queries, it is often helpful to understand when string type fields are analyzed in order to use a `match` vs a `term` query. This method provides a simple way to retrieve this information directly from the mapping.
+
+**Usage:** `mapper.analyzedFields()`
+
+The following example demonstrates how to retrieve an array of analyzed fields:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+console.log(catsMapper.analyzedFields());
+```
 
 #### #parse
 

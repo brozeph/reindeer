@@ -24,6 +24,10 @@
 			"properties": {
 				"anotherString": {
 					"type": "string"
+				},
+				"nonAnalyzedString": {
+					"index": "not_analyzed",
+					"type": "string"
 				}
 			}
 		},
@@ -46,6 +50,7 @@
 		"identity": {
 			"properties": {
 				"docId": {
+					"index": "not_analyzed",
 					"type": "string"
 				}
 			}
