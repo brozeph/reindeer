@@ -1,3 +1,7 @@
+# v0.2.5 - 10.08.2015
+
+* Fixed issue where certain field types that contain the value `null` caused an unhandled exception
+
 # v0.2.4 - 10.08.2015
 
 * Added Mapper#analyzedFields
