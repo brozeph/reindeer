@@ -36,6 +36,10 @@
 				"anotherInteger": {
 					"type": "integer"
 				},
+				"arrayOfStrings": {
+					"index": "not_analyzed",
+					"type": "string"
+				},
 				"someBoolean": {
 					"type": "boolean"
 				}

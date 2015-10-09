@@ -1,3 +1,7 @@
+# v0.2.7 - 10.09.2015
+
+* Fixed issue where string field types failed when validating arrays of strings
+
 # v0.2.6 - 10.09.2015
 
 * Adding additional summary data as callback argument for `delete` and `bulkDelete`
