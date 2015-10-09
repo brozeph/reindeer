@@ -161,11 +161,6 @@ describe('validators', function () {
 			validators.date({ required : true })(null).should.be.false;
 		});
 
-		it('should be false when value is invalid string format', function () {
-			var result = isValid('2015/07/15');
-			result.should.be.false;
-		});
-
 		it('should be true when value is valid string format', function () {
 			var result = isValid('2015-07-15');
 			result.should.be.true;
@@ -174,6 +169,9 @@ describe('validators', function () {
 			result.should.be.true;
 
 			result = isValid('2015-07-15T08:45.33-07:00');
+			result.should.be.true;
+
+			result = isValid(new Date().toString());
 			result.should.be.true;
 		});
 

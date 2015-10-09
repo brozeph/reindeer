@@ -1,10 +1,14 @@
+# v0.2.11 - 10.09.2015
+
+* Fixed issue where `new Date().toString()` failed date validation
+
 # v0.2.10 - 10.09.2015
 
-* Fixing issue with boolean type recognition
+* Fixed issue with boolean type recognition
 
 # v0.2.9 - 10.09.2015
 
-* Fixing issue where documents where fields have array values are improperly converted to a string type during coercion
+* Fixed issue where fields that were array values were improperly converted to a string type during coercion
 
 # v0.2.8 - 10.09.2015
 
