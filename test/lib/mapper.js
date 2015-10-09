@@ -1349,6 +1349,7 @@ describe('mapper', function () {
 
 			it('should properly coerce mapping type values', function (done) {
 				mockModel.falseDynamicSubDocument.anotherString = 1;
+				mockModel.subDocument.someBoolean = false;
 
 				var json = JSON.stringify(mockModel);
 
@@ -1373,6 +1374,10 @@ describe('mapper', function () {
 					(typeof result.falseDynamicSubDocument.anotherString === 'string')
 						.should.be.true;
 					result.falseDynamicSubDocument.anotherString.should.equal('1');
+
+					should.exist(result.subDocument);
+					should.exist(result.subDocument.someBoolean);
+					result.subDocument.someBoolean.should.be.false;
 
 					should.exist(result.rootFloat);
 					(typeof result.rootFloat === 'number')

@@ -1,3 +1,7 @@
+# v0.2.10 - 10.09.2015
+
+* Fixing issue with boolean type recognition
+
 # v0.2.9 - 10.09.2015
 
 * Fixing issue where documents where fields have array values are improperly converted to a string type during coercion
