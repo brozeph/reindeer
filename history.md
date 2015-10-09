@@ -1,3 +1,7 @@
+# v0.2.12 - 10.09.2015
+
+* Fixed an issue where the required check for date type fields failed
+
 # v0.2.11 - 10.09.2015
 
 * Fixed issue where `new Date().toString()` failed date validation
