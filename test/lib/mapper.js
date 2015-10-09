@@ -107,7 +107,7 @@ describe('mapper', function () {
 			return { statusCode : 200 };
 		})
 		.post('/_bulk')
-		.times(4) // replicated for bulk create, delete, update and upsert
+		.times(5) // replicated for bulk create, delete, update and upsert
 		.reply(201, function (uri, body) {
 			requestBody = body;
 			requestUri = uri;
@@ -213,7 +213,7 @@ describe('mapper', function () {
 			};
 		})
 		.post('/test-index/test-type/test-id/_update')
-		.times(2) // replicated for upsert and update
+		.times(4) // replicated for upsert and update
 		.reply(201, function (uri, body) {
 			requestBody = body;
 			requestUri = uri;
@@ -800,6 +800,26 @@ describe('mapper', function () {
 				});
 			});
 
+			it('should allow partial document update without required fields', function (done) {
+				delete mockModel.strictDynamicSubDocument.someRequiredInteger;
+				mapper.update('test-id', mockModel, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+
+					return done();
+				});
+			});
+
+			it('should allow partial document update when required fields are undefined', function (done) {
+				mockModel.strictDynamicSubDocument.someRequiredInteger = undefined;
+				mapper.update('test-id', mockModel, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+
+					return done();
+				});
+			});
+
 			it('should properly update and coerce types supplied', function (done) {
 				mapper.update('test-id', mockModel, function (err, result) {
 					should.not.exist(err);
@@ -1131,13 +1151,31 @@ describe('mapper', function () {
 				];
 
 				// remove a required field
-				docs[1].strictDynamicSubDocument.someRequiredInteger = undefined;
+				docs[1].strictDynamicSubDocument.someRequiredInteger = 'not an integer';
 
 				mapper.bulkUpdate(docs, function (err, result) {
 					should.exist(err);
 					should.not.exist(result);
 					should.exist(err.name);
 					err.name.should.equal('InvalidModelError');
+
+					return done();
+				});
+			});
+
+			it('should properly skip required field check for each document in docList', function (done) {
+				var docs = [
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel)),
+					JSON.parse(JSON.stringify(mockModel))
+				];
+
+				// remove a required field
+				docs[1].strictDynamicSubDocument.someRequiredInteger = undefined;
+
+				mapper.bulkUpdate(docs, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
 
 					return done();
 				});
