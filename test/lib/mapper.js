@@ -1418,6 +1418,21 @@ describe('mapper', function () {
 					return done();
 				});
 			});
+
+			it('should properly coerce array of non sub-document type values', function (done) {
+				mockModel.subDocument.arrayOfStrings = ['test 1', 'test 2'];
+
+				mapper.parse(mockModel, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+					should.exist(result.subDocument);
+					should.exist(result.subDocument.arrayOfStrings);
+					result.subDocument.arrayOfStrings.should.be.an('array');
+					result.subDocument.arrayOfStrings.should.have.length(2);
+
+					return done();
+				});
+			});
 		});
 
 		describe('#validate', function () {

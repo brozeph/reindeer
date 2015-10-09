@@ -1,3 +1,7 @@
+# v0.2.9 - 10.09.2015
+
+* Fixing issue where documents where fields have array values are improperly converted to a string type during coercion
+
 # v0.2.8 - 10.09.2015
 
 * Now allowing Mapper#update to skip `required` field validation when supplying a partial document
