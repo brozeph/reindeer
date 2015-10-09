@@ -1,3 +1,7 @@
+# v0.2.8 - 10.09.2015
+
+* Now allowing Mapper#update to skip `required` field validation when supplying a partial document
+
 # v0.2.7 - 10.09.2015
 
 * Fixed issue where string field types failed when validating arrays of strings
