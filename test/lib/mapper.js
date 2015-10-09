@@ -670,7 +670,7 @@ describe('mapper', function () {
 			it('should properly delete', function (done) {
 				mapper.delete('test-id', function (err, result) {
 					should.not.exist(err);
-					should.not.exist(result);
+					should.exist(result);
 					requestUri.should.equal('/test-index/test-type/test-id');
 
 					return done();
@@ -685,7 +685,7 @@ describe('mapper', function () {
 
 				mapper.delete(options, function (err, result) {
 					should.not.exist(err);
-					should.not.exist(result);
+					should.exist(result);
 					requestUri.should.equal('/test-index/test-type/test-id?timeout=1m');
 
 					return done();

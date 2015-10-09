@@ -1,3 +1,7 @@
+# v0.2.6 - 10.09.2015
+
+* Adding additional summary data as callback argument for `delete` and `bulkDelete`
+
 # v0.2.5 - 10.08.2015
 
 * Fixed issue where certain field types that contain the value `null` caused an unhandled exception
