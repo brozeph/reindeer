@@ -305,6 +305,9 @@ This method accepts the following arguments:
 * `_id` - _(required)_ - this is the `_id` value with which the document has been indexed in Elasticsearch
 * `callback` - _(required)_ - a function callback that accepts a single argument:
   * `err` - populated with details in the event of an error during the operation
+  * `summary` - populated with the response details from Elasticsearch
+    * `found` - `true` when document was found, otherwise `false`
+    * `_version` - version number of the document that was deleted
 
 The following example demonstrates the use of the `#delete` method on a mapping for cats:
 
@@ -321,13 +324,17 @@ var catsMapper = new Mapper({
 
 var animalId = 12345;
 
-catsMapper.delete(animalId, function (err) {
+catsMapper.delete(animalId, function (err, summary) {
   if (err) {
     console.error(err);
     return;
   }
 
-  console.log('successfully deleted %d', animalId);
+  if (summary.found) {
+    console.log('successfully deleted %d', animalId);
+  } else {
+    console.log('could not find cat %d', animalId);
+  }
 });
 ```
 
@@ -545,6 +552,8 @@ This method accepts the following arguments:
 * `idList` - _(required)_ - this is an array of `_id` values with which the documents that are intended to be removed have been indexed in Elasticsearch
 * `callback` - _(required)_ - a function callback that accepts a single argument:
   * `err` - populated with details in the event of an error during the operation
+  * `summary` - populated with response from Elasticsearch
+    * `items` - an array of the `delete` operations with the documents deleted
 
 The following example demonstrates the use of the `#bulkDelete` method on a mapping for cats:
 
@@ -561,13 +570,13 @@ var catsMapper = new Mapper({
 
 var idList = [12345, 54321];
 
-catsMapper.bulkDelete(idList, function (err) {
+catsMapper.bulkDelete(idList, function (err, summary) {
   if (err) {
     console.error(err);
     return;
   }
 
-  console.log('successfully deleted %d cats', idList.length);
+  console.log('successfully deleted %d cats', summary.items.length);
 });
 ```
 
