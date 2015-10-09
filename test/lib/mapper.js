@@ -1543,6 +1543,17 @@ describe('mapper', function () {
 					return done();
 				});
 			});
+
+			it('should handle validation of string type arrays correctly', function (done) {
+				mockModel.subDocument.arrayOfStrings = ['string 1', 'string 2'];
+
+				mapper.validate(mockModel, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+
+					return done();
+				});
+			});
 		});
 
 		describe('#verifyConnection', function () {
