@@ -1,3 +1,7 @@
+# v0.2.13 - 10.12.2015
+
+* Fixed an issue where on search, if fields were used, property coerceion of property types worked incorrectly
+
 # v0.2.12 - 10.09.2015
 
 * Fixed an issue where the required check for date type fields failed
