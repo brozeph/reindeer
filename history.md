@@ -1,3 +1,7 @@
+# v0.2.14 - 10.13.2015
+
+* Fixed an issue where number types formatted as strings were incorrectly failing validation
+
 # v0.2.13 - 10.12.2015
 
 * Fixed an issue where on search, if fields were used, property coerceion of property types worked incorrectly

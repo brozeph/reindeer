@@ -2,7 +2,7 @@
   "name": "reindeer",
   "description": "Provides schema enforcement based on Elasticsearch type mappings",
   "main": "./lib/index.js",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "author": "Joshua Thomas (http://github.com/brozeph)",
   "engines": {
     "node": ">= 0.8.0"

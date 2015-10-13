@@ -149,6 +149,11 @@ describe('validators', function () {
 			result = isValid(-128);
 			result.should.be.true;
 		});
+
+		it('should be true when value is a valid byte number formatted as a string', function () {
+			var result = isValid('127');
+			result.should.be.true;
+		});
 	});
 
 	describe('#date', function () {
@@ -211,6 +216,11 @@ describe('validators', function () {
 			result = isValid(99.99);
 			result.should.be.true;
 		});
+
+		it('should be true when value is a valid double number formatted as a string', function () {
+			var result = isValid('99.99');
+			result.should.be.true;
+		});
 	});
 
 	describe('#float', function () {
@@ -236,6 +246,11 @@ describe('validators', function () {
 			result.should.be.true;
 
 			result = isValid(99.99);
+			result.should.be.true;
+		});
+
+		it('should be true when value is a valid double number formatted as a string', function () {
+			var result = isValid('99.99');
 			result.should.be.true;
 		});
 	});
@@ -391,6 +406,11 @@ describe('validators', function () {
 			result = isValid(-2147483648);
 			result.should.be.true;
 		});
+
+		it('should be true when value is a valid integer number formatted as a string', function () {
+			var result = isValid('2147483647');
+			result.should.be.true;
+		});
 	});
 
 	describe('#ip', function () {
@@ -464,9 +484,19 @@ describe('validators', function () {
 			validators.long({ required : true })(null).should.be.false;
 		});
 
-		it('should be false when value is not a number', function () {
+		it('should be false when value is not a valid number', function () {
 			var result = isValid('dafuq');
 			result.should.be.false;
+		});
+
+		it('should be true when value is a proper number', function () {
+			var result = isValid(7399696);
+			result.should.be.true;
+		});
+
+		it('should be true when value is a proper number formatted as a string', function () {
+			var result = isValid('7399696');
+			result.should.be.true;
 		});
 	});
 
@@ -519,6 +549,11 @@ describe('validators', function () {
 			result.should.be.true;
 
 			result = isValid(-32768);
+			result.should.be.true;
+		});
+
+		it('should be true when value is a valid short number formatted as a string', function () {
+			var result = isValid('32767');
 			result.should.be.true;
 		});
 	});
