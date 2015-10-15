@@ -1,3 +1,7 @@
+# v0.2.15 - 10.15.2015
+
+* Added ability to specify source filtering when calling `get` and `bulkGet` methods
+
 # v0.2.14 - 10.13.2015
 
 * Fixed an issue where number types formatted as strings were incorrectly failing validation

@@ -342,11 +342,13 @@ catsMapper.delete(animalId, function (err, summary) {
 
 This method can be used to retrieve a single existing document from Elasticsearch.
 
-**Usage:** `mapper.get(_id, callback)`
+**Usage:** `mapper.get(_id, _source, callback)`
 
 This method accepts the following arguments:
 
 * `_id` - _(required)_ - this is the `_id` value with which the document has been indexed in Elasticsearch
+* `_source` - _(optional)_ - this allows one to specify a parameter of fields to return or filter from being returned according to the [Elasticsearch specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-get.html#get-source-filtering)
+  * _NOTE:_ when source filtering and required fields are set, validation will fail if the required field is not returned in the query results
 * `callback` - _(required)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
   * `model` - the validated model that is properly typed according to the mapping specification... in the event that the get method is unable to find a matching document, this will be set to `null`
@@ -374,6 +376,21 @@ catsMapper.get(animalId, function (err, catsModel) {
 
   if (catsModel) {
     console.log('successfully retrieved cat %d', animalId);
+    console.log(catsModel);
+  } else {
+    console.log('no cats exist with animalId %d', animalId);
+  }
+});
+
+// query to retrieve the animalId, breed and name only
+catsMapper.get(animalId, ['animalId', 'breed', 'name'], function (err, catsModel) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  if (catsModel) {
+    console.log('successfully retrieved cat %s', catsModel.name);
     console.log(catsModel);
   } else {
     console.log('no cats exist with animalId %d', animalId);
@@ -584,11 +601,13 @@ catsMapper.bulkDelete(idList, function (err, summary) {
 
 This method can be used to retrieve an array of existing documents from Elasticsearch.
 
-**Usage:** `mapper.bulkGet(idList, callback)`
+**Usage:** `mapper.bulkGet(idList, _source, callback)`
 
 This method accepts the following arguments:
 
 * `idList` - _(required)_ - this is an array of `_id` values for which documents should be retrieved from Elasticsearch
+* `_source` - _(optional)_ - this allows one to specify a parameter of fields to return or filter from being returned according to the [Elasticsearch specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-get.html#get-source-filtering)
+  * _NOTE:_ when source filtering and required fields are set, validation will fail if the required field is not returned in the query results
 * `callback` - _(required)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
   * `models` - an array of the validated models that are properly typed according to the mapping specification
