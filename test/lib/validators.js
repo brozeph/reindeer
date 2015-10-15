@@ -477,7 +477,7 @@ describe('validators', function () {
 	describe('#long', function () {
 		var isValid = validators.long();
 
-		it('should properly detect field.required setting', function () {
+		it('should properly detect field required setting', function () {
 			var result = isValid(null);
 			result.should.be.true;
 

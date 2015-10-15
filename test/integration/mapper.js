@@ -126,6 +126,22 @@ describe('mapper', function () {
 			});
 		});
 
+		it('should properly get in bulk with _source parameter', function (done) {
+			var idList = [hamish, keelin].map(function (cat) {
+				return cat.animalId;
+			});
+
+			catsMapper.bulkGet(idList, ['name'], function (err, catModels) {
+				should.not.exist(err);
+				should.exist(catModels);
+				catModels.should.have.length(2);
+				Object.keys(catModels[0]).should.have.length(1);
+				Object.keys(catModels[1]).should.have.length(1);
+
+				return done();
+			});
+		});
+
 		it('should properly return empty array when no results are found', function (done) {
 			var idList = [hamish, keelin].map(function (cat) {
 				return cat.name;
@@ -389,6 +405,31 @@ describe('mapper', function () {
 
 				return done();
 			});
+		});
+
+		it('should properly handle _source parameter', function (done) {
+			catsMapper.update(
+				keelin.animalId,
+				{
+					attributes : {
+						height: 8.7,
+						weight : 21.2
+					}
+				},
+				function (err) {
+					should.not.exist(err);
+
+					catsMapper.get(
+						keelin.animalId,
+						['animalId', 'breed', 'name'],
+						function (err, partialDoc) {
+							should.not.exist(err);
+							should.exist(partialDoc);
+							Object.keys(partialDoc).should.have.length(3);
+
+							return done();
+						});
+				});
 		});
 	});
 
