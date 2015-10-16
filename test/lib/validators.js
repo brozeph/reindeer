@@ -568,14 +568,22 @@ describe('validators', function () {
 			validators.string({ required : true })(null).should.be.false;
 		});
 
-		it('should be false when value is not a string', function () {
-			var result = isValid(1234);
-			result.should.be.false;
-		});
-
 		it('should be true when value is a valid string', function () {
 			var result = isValid('dafuq');
 			result.should.be.true;
+		});
+
+		it('should be true when value can be safely cast to a string', function () {
+			var result = isValid(1234);
+			result.should.be.true;
+		});
+
+		it('should be false when value is not safe to cast as a string', function () {
+			var result = isValid({ test : true });
+			result.should.be.false;
+
+			result = isValid(['test', 'test']);
+			result.should.be.false;
 		});
 	});
 });

@@ -1,3 +1,7 @@
+# v0.2.16 - 10.16.2015
+
+* Fixed issue where string validation failed on types that can be safely cast as a string
+
 # v0.2.15 - 10.15.2015
 
 * Added ability to specify source filtering when calling `get` and `bulkGet` methods
