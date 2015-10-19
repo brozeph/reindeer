@@ -373,13 +373,13 @@ var options = {
   }
 };
 
-catsMapper.delete(options, function (err, summary) {
+catsMapper.delete(options, function (err) {
   if (err) {
     console.error(err);
     return;
   }
 
-
+  console.log('delete by query occurred...');
 });
 ```
 
