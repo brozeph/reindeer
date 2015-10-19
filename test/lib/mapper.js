@@ -45,6 +45,13 @@ describe('mapper', function () {
 
 			return {};
 		})
+		.delete('/test-index/test-type/_query')
+		.reply(202, function (uri, body) {
+			requestBody = body;
+			requestUri = uri;
+
+			return {};
+		})
 		.get('/test-index/test-type/bad-id/_source')
 		.reply(404, function (uri, body) {
 			requestBody = body;
@@ -687,6 +694,38 @@ describe('mapper', function () {
 					should.not.exist(err);
 					should.exist(result);
 					requestUri.should.equal('/test-index/test-type/test-id?timeout=1m');
+
+					return done();
+				});
+			});
+
+			it('should return error when _id and query are not supplied', function (done) {
+				var options = {};
+
+				mapper.delete(options, function (err, result) {
+					should.exist(err);
+					should.not.exist(result);
+					err.name.should.equal('InvalidParameterError');
+					should.exist(err.parameterName);
+					err.parameterName.should.equal('_id');
+
+					return done();
+				});
+			});
+
+			it('should delete by query when supplied', function (done) {
+				var options = {
+					query : {
+						term : {
+							'subDocument.someBoolean' : true
+						}
+					}
+				};
+
+				mapper.delete(options, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+					requestUri.should.equal('/test-index/test-type/_query');
 
 					return done();
 				});
