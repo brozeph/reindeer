@@ -16,6 +16,16 @@ describe('mapper', function () {
 				_type : 'test-type'
 			},
 			catsMapping),
+		blue = {
+			animalId : uuid.v4().replace(/\-/g, ''),
+			breed : 'Domestic Shorthair',
+			name : 'Blue'
+		},
+		cooper = {
+			animalId : uuid.v4().replace(/\-/g, ''),
+			breed : 'Domestic Shorthair',
+			name : 'Cooper'
+		},
 		dugald = {
 			breed : 'Siamese',
 			name : 'Dugald',
@@ -49,7 +59,7 @@ describe('mapper', function () {
 	describe('#bulkCreate', function () {
 		it('should properly create in bulk', function (done) {
 			var
-				docList = [hamish, keelin],
+				docList = [blue, cooper, hamish, keelin],
 				idList = docList.map(function (cat) {
 					return cat.animalId;
 				});
@@ -57,9 +67,11 @@ describe('mapper', function () {
 			catsMapper.bulkCreate(idList, docList, function (err, result) {
 				should.not.exist(err);
 				should.exist(result);
-				result.should.have.length(2);
+				result.should.have.length(4);
 				should.exist(result[0]);
 				should.exist(result[1]);
+				should.exist(result[2]);
+				should.exist(result[3]);
 
 				catsMapper.get(keelin.animalId, function (err, catModel) {
 					should.not.exist(err);
@@ -143,11 +155,7 @@ describe('mapper', function () {
 		});
 
 		it('should properly return empty array when no results are found', function (done) {
-			var idList = [hamish, keelin].map(function (cat) {
-				return cat.name;
-			});
-
-			catsMapper.bulkGet(idList, function (err, catModels) {
+			catsMapper.bulkGet(['not-valid-id-1', 'not-valid-id-2'], function (err, catModels) {
 				should.not.exist(err);
 				should.exist(catModels);
 				catModels.should.have.length(0);
@@ -164,8 +172,8 @@ describe('mapper', function () {
 					JSON.parse(JSON.stringify(hamish)),
 					JSON.parse(JSON.stringify(keelin))
 				],
-				idList = docList.map(function (cat) {
-					return cat.name;
+				idList = docList.map(function (cat, i) {
+					return ['not-valid-id', i].join('-');
 				});
 
 			docList[0].attributes = {
@@ -270,7 +278,7 @@ describe('mapper', function () {
 				query : {
 					'match_all' : {}
 				},
-				size : 25
+				size : 500
 			};
 
 			catsMapper.search(query, function (err, catModels, summary) {
@@ -287,18 +295,19 @@ describe('mapper', function () {
 
 	describe('#bulkDelete', function () {
 		it('should properly delete in bulk', function (done) {
-			var idList = [hamish, keelin].map(function (cat) {
-				return cat.animalId;
-			});
-
-			catsMapper.bulkDelete(idList, function (err) {
+			catsMapper.bulkDelete([hamish.animalId, keelin.animalId], function (err) {
 				should.not.exist(err);
 
 				catsMapper.get(hamish.animalId, function (err, retrievedDoc) {
 					should.not.exist(err);
 					should.not.exist(retrievedDoc);
 
-					return done();
+					catsMapper.get(blue.animalId, function (err, retrievedDoc) {
+						should.not.exist(err);
+						should.exist(retrievedDoc);
+
+						return done();
+					});
 				});
 			});
 		});
@@ -379,6 +388,33 @@ describe('mapper', function () {
 					should.not.exist(retrievedDoc);
 
 					return done();
+				});
+			});
+		});
+
+		it('should properly delete by query', function (done) {
+			var options = {
+				query : {
+					match : {
+						breed : blue.breed
+					}
+				}
+			};
+
+			catsMapper.search(options, function (err, foundCats) {
+				should.not.exist(err);
+				should.exist(foundCats);
+
+				catsMapper.delete(options, function (err, summary) {
+					should.not.exist(err);
+					should.exist(summary);
+
+					catsMapper.get(blue.animalId, function (err, retrievedDoc) {
+						should.not.exist(err);
+						should.not.exist(retrievedDoc);
+
+						return done();
+					});
 				});
 			});
 		});

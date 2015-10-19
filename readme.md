@@ -296,7 +296,9 @@ catsMapper.create(doc.animalId, doc, function (err, insertedCat) {
 
 #### #delete
 
-This method can be used to delete an existing document within Elasticsearch.
+This method can be used to either delete an existing document within Elasticsearch or to delete a number of documents based on a query.
+
+##### delete by _id
 
 **Usage:** `mapper.delete(_id, callback)`
 
@@ -335,6 +337,49 @@ catsMapper.delete(animalId, function (err, summary) {
   } else {
     console.log('could not find cat %d', animalId);
   }
+});
+```
+
+##### delete by query
+
+**Usage:** `mapper.delete(options, callback)`
+
+This method accepts the following arguments:
+
+* `options` - _(required)_ - this is an object with the the following properties:
+  * `query` - the query that defines which documents to remove from Elasticsearch
+* `callback` - _(required)_ - a function callback that accepts a single argument:
+  * `err` - populated with details in the event of an error during the operation
+
+The following example demonstrates the use of the `#delete` method on a mapping for cats:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+// delete all cats with breed of "unknown"
+var options = {
+  query : {
+    term : {
+      breed : 'unknown'
+    }
+  }
+};
+
+catsMapper.delete(options, function (err, summary) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+
 });
 ```
 

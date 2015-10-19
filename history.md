@@ -1,3 +1,7 @@
+# v0.2.17 - 10.19.2015
+
+* Added ability for Mapper#delete to remove documents based on a query parameter
+
 # v0.2.16 - 10.16.2015
 
 * Fixed issue where string validation failed on types that can be safely cast as a string
