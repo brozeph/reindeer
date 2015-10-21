@@ -48,6 +48,7 @@ npm install reindeer
 #### Model Parsing and Validation
 
 * [analyzedFields](#analyzedfields)
+* [fieldExists](#fieldexists)
 * [parse](#parse)
 * [validate](#validate)
 
@@ -814,6 +815,30 @@ var catsMapper = new Mapper({
   });
 
 console.log(catsMapper.analyzedFields());
+```
+
+#### #fieldExists
+
+For building Elasticsearch queries, it is often helpful to understand when a field exists within the type - sorting on a non-existent field, for example, will result in a 400 response from Elasticsearch. This method provides a simply way to quickly determine if a field exists before attempting to use it in a query.
+
+**Usage:** `mapper.fieldExists(fieldPath)`
+
+The following example demonstrates how to determine if a field exists within a mapping:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+console.log('should be true:', catsMapper.fieldExists('name'));
+console.log('should be true:', catsMapper.fieldExists('attributes.height'));
+console.log('should be false:', catsMapper.fieldExists('attributes.furLength'));
 ```
 
 #### #parse

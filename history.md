@@ -1,3 +1,7 @@
+# v0.2.18 - 10.21.2015
+
+* Added Mapper#fieldExists to provide an easy way to verify a field exists within a mapping
+
 # v0.2.17 - 10.19.2015
 
 * Added ability for Mapper#delete to remove documents based on a query parameter

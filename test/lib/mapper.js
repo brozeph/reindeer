@@ -1352,6 +1352,16 @@ describe('mapper', function () {
 			});
 		});
 
+		describe('#fieldExists', function () {
+			it('should properly find existing fields', function () {
+				mapper.fieldExists('strictDynamicSubDocument.someDate').should.be.true;
+			});
+
+			it('should properly return false for non existing fields', function () {
+				mapper.fieldExists('a.non.existing.field').should.be.false;
+			});
+		});
+
 		describe('#parse', function () {
 			it('should properly fail with invalid JSON', function (done) {
 				mapper.parse('{ invalid json }', function (err, result) {
