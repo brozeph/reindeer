@@ -43,7 +43,10 @@ describe('mapper', function () {
 			animalId : uuid.v4().replace(/\-/g, ''),
 			breed : 'Unknown - longhair',
 			name : 'Keelin',
-			randomField : 'random data'
+			randomField : 'random data',
+			randomNestedField : {
+				randomData: 'random data'
+			}
 		};
 
 	after(function (done) {
@@ -353,6 +356,7 @@ describe('mapper', function () {
 				insertedDoc.breed.should.equal(keelin.breed);
 				insertedDoc.name.should.equal(keelin.name);
 				should.not.exist(insertedDoc.randomField);
+				should.not.exist(insertedDoc.randomNestedField.randomData);
 
 				return done();
 			});
@@ -512,6 +516,19 @@ describe('mapper', function () {
 			catsMapper.upsert(dugald.animalId, dugald, function (err, upsertedDoc) {
 				should.not.exist(err);
 				should.exist(upsertedDoc);
+
+				return done();
+			});
+		});
+
+		it('should properly create if the document contains fields not contained in mapping', function (done) {
+			keelin.animalId = uuid.v4().replace(/\-/g, '');
+
+			catsMapper.upsert(keelin.animalId, keelin, function (err, upsertedDoc) {
+				should.not.exist(err);
+				should.exist(upsertedDoc);
+				should.not.exist(upsertedDoc.randomField);
+				should.not.exist(upsertedDoc.randomNestedField.randomData);
 
 				return done();
 			});
