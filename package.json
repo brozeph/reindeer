@@ -3,7 +3,10 @@
   "description": "Provides schema enforcement based on Elasticsearch type mappings",
   "main": "./lib/index.js",
   "version": "1.0.1",
-  "author": "Joshua Thomas (http://github.com/brozeph)",
+  "author": "Joshua Thomas (https://github.com/brozeph)",
+  "contributors": [
+    "Robin Momii (https://github.com/rmomii)"
+  ],
   "engines": {
     "node": ">= 0.8.0"
   },
