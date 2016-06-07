@@ -1,3 +1,8 @@
+# v1.0.1 - 06.07.2016
+
+* Added contributor @rmomii
+* Adjusted behavior so that fields that any fields that are not specified in the mapping are not returned by unless `dynamic` is explicitly set to `false` in the mapping
+
 # v0.2.18 - 10.21.2015
 
 * Added Mapper#fieldExists to provide an easy way to verify a field exists within a mapping
