@@ -1,3 +1,5 @@
+/*eslint no-magic-numbers:0*/
+/*eslint no-unused-expressions:0*/
 var
 	chai = require('chai'),
 	should = chai.should(),
@@ -14,6 +16,7 @@ describe('validators', function () {
 
 		it('should properly detect field.required setting', function () {
 			var result = isValid(null);
+			should.exist(result);
 			result.should.be.true;
 
 			validators.attachment({ required : true })(null).should.be.false;
@@ -267,15 +270,15 @@ describe('validators', function () {
 		});
 
 		it('should be false when value is invalid array', function () {
-			var result = isValid([-14.00,143.12,44.2]);
+			var result = isValid([-14.00, 143.12, 44.2]);
 			result.should.be.false;
 		});
 
 		it('should be true when value is valid array', function () {
-			var result = isValid([-14.00,143.12]);
+			var result = isValid([-14.00, 143.12]);
 			result.should.be.true;
 
-			result = isValid(['-14.00','143.12']);
+			result = isValid(['-14.00', '143.12']);
 			result.should.be.true;
 		});
 

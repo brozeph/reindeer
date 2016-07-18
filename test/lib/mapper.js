@@ -1,3 +1,6 @@
+/*eslint no-magic-numbers:0*/
+/*eslint no-undefined:0*/
+/*eslint no-unused-expressions:0*/
 var
 	chai = require('chai'),
 	nock = require('nock'),
@@ -7,7 +10,6 @@ var
 	testMapping = require('../test-mapping.json');
 
 
-// jshint -W030
 describe('mapper', function () {
 	'use strict';
 
@@ -1397,10 +1399,10 @@ describe('mapper', function () {
 			});
 
 			it('should properly coerce mapping type values', function (done) {
+				let json = JSON.stringify(mockModel);
+
 				mockModel.falseDynamicSubDocument.anotherString = 1;
 				mockModel.subDocument.someBoolean = false;
-
-				var json = JSON.stringify(mockModel);
 
 				mapper.parse(json, function (err, result) {
 					should.not.exist(err);
