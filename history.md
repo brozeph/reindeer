@@ -1,3 +1,8 @@
+# v2.0.0 - 07.18.2016
+
+* Introduced Promise capability on all asynchronous operations
+* Switched to `eslint` from `jshint`
+
 # v1.0.1 - 06.07.2016
 
 * Added contributor @rmomii
