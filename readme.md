@@ -243,6 +243,60 @@ catsMapper.search(query, function (err, catModels, summary) {
 });
 ```
 
+##### events
+
+The search method fires the following events:
+
+* `summary` - each time a search is conducted, a `summary` event is emitted with an object that is structured as follows:
+
+```json
+{
+  "query": {},
+  "total": 0
+}
+```
+
+The summary object contains the following fields:
+
+* query - the query that was passed to Elasticsearch
+* total - the total number of documents that match the query within Elasticsearch... this value is useful when paginating results from Elasticsearch
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+// query for all cats
+var query = {
+  from : 0,
+  query : {
+    match_all : {}
+  },
+  size : 50 // grab a limit of 50 documents
+};
+
+catsMapper.on('summary', (summary) => {
+	console.log('found %d cats', summary.total);
+	console.log(summary.query);
+});
+
+catsMapper.search(query, function (err, catModels) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  console.log('here are the cats that were found:');
+  console.log(catModels);
+});
+```
+
 ### Basic CRUD Methods
 
 #### #create
@@ -262,8 +316,7 @@ This method accepts the following arguments:
   * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
 * `callback` - _(required)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
-  * `insertedModel` - the validated model that is properly typed according to the mapping specification
-  * `insertedModelId` - if the `_id` property is not specified, this will contain the value created by Elasticsearch, otherwise it is null
+  * `insertedModel` - the validated model that is properly typed according to the mapping specification - if the `_id` parameter is not specified, an event named `identity` is emitted that will contain the value of the `_id` created by Elasticsearch
 
 The following example demonstrates the use of the `#create` method on a mapping for cats:
 
@@ -285,6 +338,45 @@ var doc = {
 };
 
 catsMapper.create(doc.animalId, doc, function (err, insertedCat) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  console.log('successfully inserted cat %d', insertedCat.animalId);
+  console.log(insertedCat);
+});
+```
+
+##### events
+
+The create method fires the following events:
+
+* `identity` - in the event that Elasticsearch is used to generate an `_id` for a document when it is indexed, this event is fired:
+
+The identity event returns a string value of the `_id` assigned.
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var doc = {
+  breed : 'manx',
+  name : 'Hamish'
+};
+
+catsMapper.on('identity', (_id) => {
+  console.log('cat was created with _id %s', _id);
+});
+
+catsMapper.create(doc, function (err, insertedCat) {
   if (err) {
     console.error(err);
     return;
@@ -562,8 +654,7 @@ This method accepts the following arguments:
   * _NOTE:_ all fields in each document will be validated against the mapping specification prior to calling Elasticsearch
 * `callback` - _(required)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
-  * `insertedModels` - the validated models that are properly typed according to the mapping specification
-  * `insertedModelIds` - the `_id` property for each document inserted into Elasticsearch in the same order as the array of `insertedModels`
+  * `insertedModels` - the validated models that are properly typed according to the mapping specification - if there are no specified primary identifiers for the models and Elasticsearch generates these values internally, the identifiers will be emitted as an array value from the event named `identity`
 
 The following example demonstrates the use of the `#bulkCreate` method on a mapping for cats:
 
@@ -594,6 +685,51 @@ var idList = docList.map(function (cat) {
 });
 
 catsMapper.bulkCreate(idList, docList, function (err, insertedCats) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  console.log('successfully inserted %d cats', insertedCat.length);
+  console.log(insertedCats);
+});
+```
+
+##### events
+
+The bulkCreate method fires the following events:
+
+* `identity` - in the event that Elasticsearch is used to generate an `_id` for the documents indexed in bulk, this event is fired:
+
+The identity event returns an array of strings that contain the `_id` values assigned.
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var docList = [{
+    breed : 'manx',
+    name : 'Hamish'
+  }, {
+    breed : 'siamese',
+    name : 'Dugald'
+  }];
+
+catsMapper.on('identity', (idList) => {
+	console.log(
+		'Elasticsearch assigned %d identifiers to the indexed documents',
+		idList.length);
+	console.log(idList);
+});
+
+catsMapper.bulkCreate(docList, function (err, insertedCats) {
   if (err) {
     console.error(err);
     return;
