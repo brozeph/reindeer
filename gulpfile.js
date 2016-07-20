@@ -5,9 +5,9 @@ var
 	del = require('del'),
 	eslint = require('gulp-eslint'),
 	gulp = require('gulp'),
+	gulpUtil = require('gulp-util'),
 	istanbul = require('gulp-istanbul'),
-	mocha = require('gulp-mocha'),
-	sequence = require('run-sequence');
+	mocha = require('gulp-mocha');
 
 
 gulp.task('clean', function (callback) {
@@ -22,7 +22,7 @@ gulp.task('coveralls', ['test-coverage'], function () {
 });
 
 
-gulp.task('lint', () => {
+gulp.task('lint', function () {
 	return gulp
 		.src(['**/*.js', '!node_modules/**', '!reports/**'])
 		.pipe(eslint())
@@ -39,9 +39,15 @@ gulp.task('test-coverage', ['clean'], function () {
 		.on('finish', function () {
 			gulp
 				.src(['./test/lib/**/*.js'])
-				.pipe(mocha({
-					reporter : 'spec'
-				}))
+				.pipe(mocha({ reporter : 'spec' })
+						.on('error', function (err) {
+							if (err.showStack) {
+								gulpUtil.log(err);
+							}
+
+							/*eslint no-invalid-this:0*/
+							this.emit('end');
+						}))
 				.pipe(istanbul.writeReports('./reports'));
 		});
 });
