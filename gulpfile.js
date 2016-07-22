@@ -3,15 +3,15 @@
 var
 	coveralls = require('gulp-coveralls'),
 	del = require('del'),
+	eslint = require('gulp-eslint'),
 	gulp = require('gulp'),
+	gulpUtil = require('gulp-util'),
 	istanbul = require('gulp-istanbul'),
-	jshint = require('gulp-jshint'),
-	mocha = require('gulp-mocha'),
-	sequence = require('run-sequence');
+	mocha = require('gulp-mocha');
 
 
 gulp.task('clean', function (callback) {
-	return del(['coverage'], callback);
+	return del(['reports'], callback);
 });
 
 
@@ -21,11 +21,13 @@ gulp.task('coveralls', ['test-coverage'], function () {
 		.pipe(coveralls());
 });
 
-gulp.task('jshint', function () {
+
+gulp.task('lint', function () {
 	return gulp
-		.src(['lib/**/*.js', 'test/**/*.js'])
-		.pipe(jshint())
-		.pipe(jshint.reporter('jshint-stylish'));
+		.src(['**/*.js', '!node_modules/**', '!reports/**'])
+		.pipe(eslint())
+		.pipe(eslint.format())
+		.pipe(eslint.failAfterError());
 });
 
 
@@ -37,9 +39,15 @@ gulp.task('test-coverage', ['clean'], function () {
 		.on('finish', function () {
 			gulp
 				.src(['./test/lib/**/*.js'])
-				.pipe(mocha({
-					reporter : 'spec'
-				}))
+				.pipe(mocha({ reporter : 'spec' })
+						.on('error', function (err) {
+							if (err.showStack) {
+								gulpUtil.log(err);
+							}
+
+							/*eslint no-invalid-this:0*/
+							this.emit('end');
+						}))
 				.pipe(istanbul.writeReports('./reports'));
 		});
 });

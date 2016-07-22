@@ -12,6 +12,57 @@ Reindeer is an Object Data Mapper (ODM) that strives to make persisting objects 
 * Required fields support in mapping (not a native feature of Elasticsearch)
 * Dynamic [strict and false](https://www.elastic.co/guide/en/elasticsearch/guide/current/dynamic-mapping.html) mapping support
 
+```Javascript
+const
+  Mapper = require('reindeer').Mapper,
+  schema = {
+    properties : {
+      animalId : {
+        type : 'string'
+      },
+      birthday : {
+        type : 'date',
+        format : 'dateOptionalTime'
+      },
+      breed : {
+        type : 'string'
+      },
+      name : {
+        required : true, // NOTE: not an official Elasticsearch mapping option
+        type : 'string'
+      }
+    }
+  };
+
+let catsMapper = new Mapper();
+
+catsMapper
+  .bulkUpsert([
+    { animalId : 1, name : 'Hamish', birthday : '2011-05-28' },
+    { animalId : 2, name : 'Cooper', birthday : '2013-07-02' },
+    { animalId : 3, name : 'Blue', birthday : '2014-01-13' },
+    { animalId : 4, name : 'Dugald', birthday : '2017-02-21' }
+  ])
+  .then(() => catsMapper.search({ query : { match_all : {} } }))
+  .then((cats) => {
+    cats.forEach((cat) => console.log(
+      '%s the cat has id %s',
+      cat.name,
+      cat.animalId));
+
+    return Promise.resolve();
+  })
+  .then(() => catsMapper.delete(1))
+  .then((result) => console.log(
+    '_version %s of the cat was removed',
+    result._version))
+  .catch(console.error);
+```
+
+## ES6 Support
+
+For each method documented below, the `callback` argument is fully optional. In the event that callback is not provided, a Javascript native `Promise` is returned to the caller.
+
 ## Installation
 
 ```
@@ -162,9 +213,9 @@ In order to quickly verify connectivity with Elasticsearch, the `#verifyConnecti
 
 **Usage:** `mapper.verifyConnection(callback)`
 
-This method accepts a single argument:
+This method accepts a single optional argument:
 
-* `callback` - _(required)_ - a function callback that accepts one arguments:
+* `callback` - _(optional)_ - a function callback that accepts one arguments:
   * `err` - populated with details in the event of an error during the operation
 
 ```javascript
@@ -178,13 +229,15 @@ var catsMapper = new Mapper({
     /* ... mapping details here ... */
   });
 
-catsMapper.verifyConnection(function (err) {
-  if (err) {
+catsMapper
+  .verifyConnection()
+  .then(() => {
+    console.log('able to connect to Elasticsearch');
+  })
+  .catch((err) => {
     console.error('unable to connect to Elasticsearch!');
     console.error(err);
-  }
-
-  console.log('able to connect to Elasticsearch');
+  });
 });
 ```
 
@@ -202,7 +255,7 @@ This method accepts the following arguments:
 
 * `options` - _(optional)_ - this can be used to supply additional parameters to Elasticsearch related to the query
 * `query` - _(required)_ - this is the query payload that will be sent to Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts three arguments:
+* `callback` - _(optional)_ - a function callback that accepts three arguments:
   * `err` - populated with details in the event of an error during the operation
   * `models` - an array of models matching the search, properly typed according to the mapping supplied to the mapper constructor
   * `summary` - an object that contains details regarding the search
@@ -230,16 +283,69 @@ var query = {
   size : 50 // grab a limit of 50 documents
 };
 
-catsMapper.search(query, function (err, catModels, summary) {
-  if (err) {
-    console.error(err);
-    return;
-  }
+// NOTE: utilizing `#search` as a Promise
+catsMapper
+  .search(query)
+  .then((catModels) => {
+    console.log(
+      'successfully searched cats and retrieved %d documents',
+      catModels.length);
 
-  console.log(
-    'successfully searched cats and found a total of %d matching documents',
-    summary.total);
-  console.log(catModels);
+    console.log(catModels);
+  })
+  .catch(console.error);
+```
+
+##### events
+
+The search method fires the following events:
+
+* `summary` - each time a search is conducted, a `summary` event is emitted with an object that is structured as follows:
+
+```json
+{
+  "query": {},
+  "total": 0
+}
+```
+
+The summary object contains the following fields:
+
+* query - the query that was passed to Elasticsearch
+* total - the total number of documents that match the query within Elasticsearch... this value is useful when paginating results from Elasticsearch
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+// query for all cats
+var query = {
+  from : 0,
+  query : {
+    match_all : {}
+  },
+  size : 50 // grab a limit of 50 documents
+};
+
+catsMapper.on('summary', (summary) => {
+  console.log('found %d cats', summary.total);
+  console.log(summary.query);
+});
+
+catsMapper
+  .search(query)
+  .then((catModels) => {
+    console.log('here are the first %d cats found:', catModels.length);
+    console.log(catModels);
+  })
+  .catch(console.error);
 });
 ```
 
@@ -260,10 +366,9 @@ This method accepts the following arguments:
 * `doc` - _(required)_ - this is the document representing what should be created in Elasticsearch
   * the document can be specified as a partial document
   * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts two arguments:
+* `callback` - _(optional)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
-  * `insertedModel` - the validated model that is properly typed according to the mapping specification
-  * `insertedModelId` - if the `_id` property is not specified, this will contain the value created by Elasticsearch, otherwise it is null
+  * `insertedModel` - the validated model that is properly typed according to the mapping specification - if the `_id` parameter is not specified, an event named `identity` is emitted that will contain the value of the `_id` created by Elasticsearch
 
 The following example demonstrates the use of the `#create` method on a mapping for cats:
 
@@ -284,29 +389,66 @@ var doc = {
   name : 'Hamish'
 };
 
-catsMapper.create(doc.animalId, doc, function (err, insertedCat) {
-  if (err) {
-    console.error(err);
-    return;
-  }
+catsMapper
+  .create(doc.animalId, doc)
+  .then((insertedCat) => {
+    console.log('successfully inserted cat %d', insertedCat.animalId);
+    console.log(insertedCat);
+  })
+  .catch(console.error);
+```
 
-  console.log('successfully inserted cat %d', insertedCat.animalId);
-  console.log(insertedCat);
+##### events
+
+The create method fires the following events:
+
+* `identity` - whenever a `#create` operation would result in Elasticsearch creating the `_id` of the document, this event is emitted with the value of the identifier
+
+The identity event returns a string value of the `_id` assigned.
+
+The following example demonstrates how to collect the `_id` in the even that it is created by Elasticsearch:
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var doc = {
+  breed : 'manx',
+  name : 'Hamish'
+};
+
+catsMapper.on('identity', (_id) => {
+  console.log('cat %s created with _id of %s', doc.name, _id);
 });
+
+catsMapper
+  .create(doc)
+  .then((insertedCat) => {
+    console.log('successfully inserted cat %d', insertedCat.animalId);
+    console.log(insertedCat);
+  })
+  .catch(console.error);
 ```
 
 #### #delete
 
 This method can be used to either delete an existing document within Elasticsearch or to delete a number of documents based on a query.
 
-##### delete by _id
+##### delete by `_id`
 
 **Usage:** `mapper.delete(_id, callback)`
 
 This method accepts the following arguments:
 
 * `_id` - _(required)_ - this is the `_id` value with which the document has been indexed in Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts a single argument:
+* `callback` - _(optional)_ - a function callback that accepts a single argument:
   * `err` - populated with details in the event of an error during the operation
   * `summary` - populated with the response details from Elasticsearch
     * `found` - `true` when document was found, otherwise `false`
@@ -327,18 +469,16 @@ var catsMapper = new Mapper({
 
 var animalId = 12345;
 
-catsMapper.delete(animalId, function (err, summary) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  if (summary.found) {
-    console.log('successfully deleted %d', animalId);
-  } else {
-    console.log('could not find cat %d', animalId);
-  }
-});
+catsMapper
+  .delete(animalId)
+  .then((summary) => {
+    if (summary.found) {
+      console.log('successfully deleted %d', animalId);
+    } else {
+      console.log('could not find cat %d', animalId);
+    }
+  })
+  .catch(console.error);
 ```
 
 ##### delete by query
@@ -349,7 +489,7 @@ This method accepts the following arguments:
 
 * `options` - _(required)_ - this is an object with the the following properties:
   * `query` - the query that defines which documents to remove from Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts a single argument:
+* `callback` - _(optional)_ - a function callback that accepts a single argument:
   * `err` - populated with details in the event of an error during the operation
 
 The following example demonstrates the use of the `#delete` method on a mapping for cats:
@@ -374,14 +514,12 @@ var options = {
   }
 };
 
-catsMapper.delete(options, function (err) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  console.log('delete by query occurred...');
-});
+catsMapper
+  .delete(options)
+  .then(() => {
+    console.log('delete by query occurred...');
+  })
+  .catch(console.error);
 ```
 
 #### #get
@@ -395,7 +533,7 @@ This method accepts the following arguments:
 * `_id` - _(required)_ - this is the `_id` value with which the document has been indexed in Elasticsearch
 * `_source` - _(optional)_ - this allows one to specify a parameter of fields to return or filter from being returned according to the [Elasticsearch specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-get.html#get-source-filtering)
   * _NOTE:_ when source filtering and required fields are set, validation will fail if the required field is not returned in the query results
-* `callback` - _(required)_ - a function callback that accepts two arguments:
+* `callback` - _(optional)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
   * `model` - the validated model that is properly typed according to the mapping specification... in the event that the get method is unable to find a matching document, this will be set to `null`
 
@@ -414,34 +552,29 @@ var catsMapper = new Mapper({
 
 var animalId = 12345;
 
-catsMapper.get(animalId, function (err, catsModel) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  if (catsModel) {
-    console.log('successfully retrieved cat %d', animalId);
-    console.log(catsModel);
-  } else {
-    console.log('no cats exist with animalId %d', animalId);
-  }
-});
+catsMapper
+  .get(animalId)
+  .then((catsModel) => {
+    if (catsModel) {
+      console.log('successfully retrieved cat %d', animalId);
+      console.log(catsModel);
+    } else {
+      console.log('no cats exist with animalId %d', animalId);
+    }
+  })
+  .catch(console.error);
 
 // query to retrieve the animalId, breed and name only
-catsMapper.get(animalId, ['animalId', 'breed', 'name'], function (err, catsModel) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  if (catsModel) {
-    console.log('successfully retrieved cat %s', catsModel.name);
-    console.log(catsModel);
-  } else {
-    console.log('no cats exist with animalId %d', animalId);
-  }
-});
+catsMapper.get(animalId, ['animalId', 'breed', 'name'])
+  .then((catsModel) => {
+    if (catsModel) {
+      console.log('successfully retrieved cat %s', catsModel.name);
+      console.log(catsModel);
+    } else {
+      console.log('no cats exist with animalId %d', animalId);
+    }
+  })
+  .catch(console.error);
 ```
 
 #### #update
@@ -458,7 +591,7 @@ This method accepts the following arguments:
 * `doc` - _(required)_ - this is the document representing what should be updated in Elasticsearch
   * the document can be specified as a partial document
   * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts two arguments:
+* `callback` - _(optional)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
   * `updatedModel` - the validated model that is properly typed according to the mapping specification
 
@@ -476,21 +609,18 @@ var catsMapper = new Mapper({
 
 var animalId = 12345;
 
-catsMapper.update(
-  animalId,
-  {
-    birthday : new Date('2014-04-20'),
-    name : 'Hamish the cat'
-  },
-  function (err, updatedCat) {
-    if (err) {
-      console.error(err);
-      return;
-    }
-
-    console.log('successfully updated cat %d', animalId);
+catsMapper
+  .update(
+    animalId,
+    {
+      birthday : new Date('2014-04-20'),
+      name : 'Hamish the cat'
+    })
+  .then((updatedCat) => {
+    console.log('successfully updated %s the cat', updatedCat.name);
     console.log(updatedCat);
-  });
+  })
+  .catch(console.error);
 ```
 
 #### #upsert
@@ -507,9 +637,9 @@ This method accepts the following arguments:
 * `doc` - _(required)_ - this is the document representing what should be updated in Elasticsearch
   * the document can be specified as a partial document
   * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts two arguments:
+* `callback` - _(optional)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
-  * `updatedModel` - the validated model that is properly typed according to the mapping specification
+  * `upsertedModel` - the validated model that is properly typed according to the mapping specification
 
 ```javascript
 var Mapper = require('reindeer').Mapper;
@@ -525,23 +655,20 @@ var catsMapper = new Mapper({
 
 var animalId = 12345;
 
-catsMapper.upsert(
-  animalId,
-  {
-    animalId : animalId,
-    birthday : new Date('2014-04-20'),
-    breed : 'manx',
-    name : 'Hamish the cat'
-  },
-  function (err, upsertedCat) {
-    if (err) {
-      console.error(err);
-      return;
-    }
-
-    console.log('successfully upserted cat %d', animalId);
+catsMapper
+  .upsert(
+    animalId,
+    {
+      animalId : animalId,
+      birthday : new Date('2014-04-20'),
+      breed : 'manx',
+      name : 'Hamish the cat'
+    })
+  .then((upsertedCat) => {
+    console.log('successfully upserted %s the cat', upsertedCat.name);
     console.log(upsertedCat);
-  });
+  })
+  .catch(console.error);
 ```
 
 ### Bulk CRUD Operations
@@ -560,10 +687,9 @@ This method accepts the following arguments:
     * _NOTE:_ it is strongly recommended that you ensure a value for `_id` is supplied for each document as without it, there is no way to later retrieve, delete or update documents easily using the mapping object
 * `docList` - _(required)_ - this is an array of documents to index within Elasticsearch
   * _NOTE:_ all fields in each document will be validated against the mapping specification prior to calling Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts two arguments:
+* `callback` - _(optional)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
-  * `insertedModels` - the validated models that are properly typed according to the mapping specification
-  * `insertedModelIds` - the `_id` property for each document inserted into Elasticsearch in the same order as the array of `insertedModels`
+  * `insertedModels` - the validated models that are properly typed according to the mapping specification - if there are no specified primary identifiers for the models and Elasticsearch generates these values internally, the identifiers will be emitted as an array value from the event named `identity`
 
 The following example demonstrates the use of the `#bulkCreate` method on a mapping for cats:
 
@@ -593,15 +719,56 @@ var idList = docList.map(function (cat) {
   return cat.animalId;
 });
 
-catsMapper.bulkCreate(idList, docList, function (err, insertedCats) {
-  if (err) {
-    console.error(err);
-    return;
-  }
+catsMapper
+  .bulkCreate(idList, docList)
+  .then((insertedCats) => {
+    console.log('successfully inserted %d cats', insertedCat.length);
+    console.log(insertedCats);
+  })
+  .catch(console.error);
+```
 
-  console.log('successfully inserted %d cats', insertedCat.length);
-  console.log(insertedCats);
+##### events
+
+The bulkCreate method fires the following events:
+
+* `identity` - in the event that Elasticsearch is used to generate an `_id` for the documents indexed in bulk, this event is fired:
+
+The identity event returns an array of strings that contain the `_id` values assigned.
+
+```javascript
+var Mapper = require('reindeer').Mapper;
+
+// create a cats Elasticsearch data mapper
+var catsMapper = new Mapper({
+    _index : 'animals',
+    _type : 'cats'
+  }, {
+    /* ... mapping details here ... */
+  });
+
+var docList = [{
+    breed : 'manx',
+    name : 'Hamish'
+  }, {
+    breed : 'siamese',
+    name : 'Dugald'
+  }];
+
+catsMapper.on('identity', (idList) => {
+  console.log(
+    'Elasticsearch assigned %d identifiers to the indexed documents',
+    idList.length);
+  console.log(idList);
 });
+
+catsMapper
+  .bulkCreate(docList)
+  .then((insertedCats) => {
+    console.log('successfully inserted %d cats', insertedCat.length);
+    console.log(insertedCats);
+  })
+  .catch(console.error);
 ```
 
 #### #bulkDelete
@@ -613,7 +780,7 @@ This method can be used to delete multiple existing documents within Elasticsear
 This method accepts the following arguments:
 
 * `idList` - _(required)_ - this is an array of `_id` values with which the documents that are intended to be removed have been indexed in Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts a single argument:
+* `callback` - _(optional)_ - a function callback that accepts a single argument:
   * `err` - populated with details in the event of an error during the operation
   * `summary` - populated with response from Elasticsearch
     * `items` - an array of the `delete` operations with the documents deleted
@@ -633,14 +800,12 @@ var catsMapper = new Mapper({
 
 var idList = [12345, 54321];
 
-catsMapper.bulkDelete(idList, function (err, summary) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  console.log('successfully deleted %d cats', summary.items.length);
-});
+catsMapper
+  .bulkDelete(idList)
+  .then((summary) => {
+    console.log('successfully deleted %d cats', summary.items.length);
+  })
+  .catch(console.error);
 ```
 
 #### #bulkGet
@@ -654,7 +819,7 @@ This method accepts the following arguments:
 * `idList` - _(required)_ - this is an array of `_id` values for which documents should be retrieved from Elasticsearch
 * `_source` - _(optional)_ - this allows one to specify a parameter of fields to return or filter from being returned according to the [Elasticsearch specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-get.html#get-source-filtering)
   * _NOTE:_ when source filtering and required fields are set, validation will fail if the required field is not returned in the query results
-* `callback` - _(required)_ - a function callback that accepts two arguments:
+* `callback` - _(optional)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
   * `models` - an array of the validated models that are properly typed according to the mapping specification
     * _NOTE:_ in the event that a document is not found, it is not returned in the models array... if no documents are found at all, the models array will be an empty array
@@ -674,15 +839,13 @@ var catsMapper = new Mapper({
 
 var idList = [12345, 54321];
 
-catsMapper.bulkGet(idList, function (err, cats) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  console.log('successfully retrieved %d cats', cats.length);
-  console.log(cats);
-});
+catsMapper
+  .bulkGet(idList)
+  .then((cats) => {
+    console.log('successfully retrieved %d cats', cats.length);
+    console.log(cats);
+  })
+  .catch(console.error);
 ```
 
 #### #bulkUpdate
@@ -699,7 +862,7 @@ This method accepts the following arguments:
 * `docList` - _(required)_ - * `docList` - _(required)_ - this is an array of documents to update within Elasticsearch
   * any of the documents can be specified as partial documents
   * _NOTE:_ all fields in each document will be validated against the mapping specification prior to calling Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts two arguments:
+* `callback` - _(optional)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
   * `updatedModels` - the updated and validated models that are properly typed according to the mapping specification
 
@@ -726,15 +889,13 @@ var idList = docList.map(function (cat) {
   return cat.animalId;
 });
 
-catsMapper.bulkUpdate(idList, docList, function (err, updatedCats) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  console.log('successfully updated %d cats', updatedCats.length);
-  console.log(updatedCats);
-});
+catsMapper
+  .bulkUpdate(idList, docList)
+  .then((updatedCats) => {
+    console.log('successfully updated %d cats', updatedCats.length);
+    console.log(updatedCats);
+  })
+  .catch(console.error);
 ```
 
 #### #bulkUpsert
@@ -751,7 +912,7 @@ This method accepts the following arguments:
 * `docList` - _(required)_ - this is an array of documents to update or create if not present within Elasticsearch
   * any of the documents can be specified as partial documents
   * _NOTE:_ all fields in each document will be validated against the mapping specification prior to calling Elasticsearch
-* `callback` - _(required)_ - a function callback that accepts two arguments:
+* `callback` - _(optional)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
   * `updatedModel` - the validated model that is properly typed according to the mapping specification
 
@@ -782,15 +943,13 @@ var idList = docList.map(function (cat) {
   return cat.animalId;
 });
 
-catsMapper.bulkUpsert(idList, docList, function (err, upsertedCats) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  console.log('successfully upserted %d cats', upsertedCats.length);
-  console.log(upsertedCats);
-});
+catsMapper
+  .bulkUpsert(idList, docList)
+  .then((upsertedCats) => {
+    console.log('successfully upserted %d cats', upsertedCats.length);
+    console.log(upsertedCats);
+  })
+  .catch(console.error);
 ```
 
 ### Model Parsing and Validation
@@ -852,7 +1011,7 @@ _NOTE:_ This method is used internally by CRUD methods within this module in ord
 This method accepts the following arguments:
 
 * `json` - _(required)_ - this can be either a JSON string or a Javascript object containing the document to be parsed
-* `callback` - _(required)_ - a function callback that accepts two arguments:
+* `callback` - _(optional)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
   * `model` - the parsed model that is properly typed according to the mapping specification
 
@@ -871,17 +1030,15 @@ var catsMapper = new Mapper({
 
 var json = requestJSONStringFromSomewhere();
 
-catsMapper.parse(json, function (err, catsModel) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  if (catsModel) {
-    console.log('successfully parsed cat %d', catsModel.animalId);
-    console.log(catsModel);
-  }
-});
+catsMapper
+  .parse(json)
+  .then((catsModel) => {
+    if (catsModel) {
+      console.log('successfully parsed cat %d', catsModel.animalId);
+      console.log(catsModel);
+    }
+  })
+  .catch(console.error);
 ```
 
 #### #validate
@@ -908,12 +1065,18 @@ This method accepts the following arguments:
   * the document can be specified as a partial model
   * _NOTE:_ if required fields are missing, an `InvalidModelError` will be returned
   * _NOTE:_ if an `_id.path` is specified in the mapping, and a value is found matching that field in the supplied document, it will be returned in the modelId parameter
-* `callback` - _(required)_ - a function callback that accepts three arguments:
+* `callback` - _(optional)_ - a function callback that accepts three arguments:
   * `err` - populated with details in the event of an error during the operation
   * `validatedModel` - the validated model resulting from the operation
   * `modelId` - if `_id.path` is specified in the mapping and the field exists in the `doc` supplied, this is the value of the `_id`, otherwise, `null`
 
-The following demonstrates use of the validate method:
+##### events
+
+The validate method fires the following events:
+
+* `identity` - whenever a `#validate` operation results in the discovery of the `_id` for the document that will be inserted to Elasticsearch, the `identity` event is emitted
+
+The identity event returns a string value of the `_id`. The following demonstrates use of the validate method:
 
 ```javascript
 var Mapper = require('reindeer').Mapper;
@@ -932,16 +1095,21 @@ var doc = {
   name : 'Hamish'
 };
 
-catsMapper.validate(doc, function (err, catsModel, animalId) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  if (catsModel) {
-    // note, unless _id.path is specified in the mapping, animalId is null
-    console.log('successfully validated cat %d', catsModel.animalId);
-    console.log(catsModel);
-  }
+// note, unless _id.path is specified in the mapping, identity will not emit
+catsMapper.on('identity', (_id) => {
+  console.log(
+    '_id of document will be %s (which is the animalId: %s)',
+    _id,
+    doc.animalId);
 });
+
+catsMapper
+  .validate(doc)
+  .then((catsModel) => {
+    if (catsModel) {
+      console.log('successfully validated %s the cat', catsModel.name);
+      console.log(catsModel);
+    }
+  })
+  .catch(console.error)
 ```
