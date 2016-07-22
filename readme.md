@@ -12,6 +12,53 @@ Reindeer is an Object Data Mapper (ODM) that strives to make persisting objects 
 * Required fields support in mapping (not a native feature of Elasticsearch)
 * Dynamic [strict and false](https://www.elastic.co/guide/en/elasticsearch/guide/current/dynamic-mapping.html) mapping support
 
+```Javascript
+const
+  Mapper = require('reindeer').Mapper,
+  schema = {
+    properties : {
+      animalId : {
+        type : 'string'
+      },
+      birthday : {
+        type : 'date',
+        format : 'dateOptionalTime'
+      },
+      breed : {
+        type : 'string'
+      },
+      name : {
+        required : true, // NOTE: not an official Elasticsearch mapping option
+        type : 'string'
+      }
+    }
+  };
+
+let catsMapper = new Mapper();
+
+catsMapper
+  .bulkUpsert([
+    { animalId : 1, name : 'Hamish', birthday : '2011-05-28' },
+    { animalId : 2, name : 'Cooper', birthday : '2013-07-02' },
+    { animalId : 3, name : 'Blue', birthday : '2014-01-13' },
+    { animalId : 4, name : 'Dugald', birthday : '2017-02-21' }
+  ])
+  .then(() => catsMapper.search({ query : { match_all : {} } }))
+  .then((cats) => {
+    cats.forEach((cat) => console.log(
+      '%s the cat has id %s',
+      cat.name,
+      cat.animalId));
+
+    return Promise.resolve();
+  })
+  .then(() => catsMapper.delete(1))
+  .then((result) => console.log(
+    '_version %s of the cat was removed',
+    result._version))
+  .catch(console.error);
+```
+
 ## ES6 Support
 
 For each method documented below, the `callback` argument is fully optional. In the event that callback is not provided, a Javascript native `Promise` is returned to the caller.
@@ -592,7 +639,7 @@ This method accepts the following arguments:
   * _NOTE:_ all fields in the document will be validated against the mapping specification prior to calling Elasticsearch
 * `callback` - _(optional)_ - a function callback that accepts two arguments:
   * `err` - populated with details in the event of an error during the operation
-  * `updatedModel` - the validated model that is properly typed according to the mapping specification
+  * `upsertedModel` - the validated model that is properly typed according to the mapping specification
 
 ```javascript
 var Mapper = require('reindeer').Mapper;
