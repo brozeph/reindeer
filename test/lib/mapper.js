@@ -1851,6 +1851,22 @@ describe('mapper', function () {
 					return done();
 				});
 			});
+
+			it('should not raise identity event when _id is not found', function (done) {
+				var _id;
+
+				mapper.on('identity', (id) => (_id = id));
+
+				delete mockModel.identity;
+
+				mapper.validate(mockModel, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+					should.not.exist(_id);
+
+					return done();
+				});
+			});
 		});
 
 		describe('#validate - sub-document arrays', function () {
