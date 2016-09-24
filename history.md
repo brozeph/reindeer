@@ -1,3 +1,7 @@
+# v2.0.1 - 09.23.2016
+
+* Fixed bug where sub-documents were not properly validated and cloned prior to sending to Elasticsearch
+
 # v2.0.0 - 07.20.2016
 
 * Introduced Promise capability on all asynchronous operations
