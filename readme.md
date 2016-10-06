@@ -483,12 +483,15 @@ catsMapper
 
 ##### delete by query
 
+The delete by query functionality has been deprecated in Elasticsearch v1.5 and all-together removed in versions later than v2.0. While a plugin can be installed to support this functionality, this library utilizes the scan and scroll mechanism to query and then remove matching results. This may result in multiple round-trips to Elasticsearch in order to fully remove content - to reduce the number of round-trips, it may be useful to supply the `size` parameter when calling this method.
+
 **Usage:** `mapper.delete(options, callback)`
 
 This method accepts the following arguments:
 
 * `options` - _(required)_ - this is an object with the the following properties:
   * `query` - the query that defines which documents to remove from Elasticsearch
+  * `size` - the size of the scroll set when performing the delete
 * `callback` - _(optional)_ - a function callback that accepts a single argument:
   * `err` - populated with details in the event of an error during the operation
 

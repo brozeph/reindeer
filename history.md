@@ -1,3 +1,9 @@
+# v2.0.2 - 10.06.2016
+
+* Fixed bug where decorators to the mapping were rejected by versions of Elasticsearch greater than `v2`
+* Updated `es` module dependency
+* Adjusted module to utilize scan and scroll in conjunction with bulk delete commandsto delete by query as the functionality has been deprecated in Elasticsearch
+
 # v2.0.1 - 09.23.2016
 
 * Fixed bug where sub-documents were not properly validated and cloned prior to sending to Elasticsearch

@@ -57,10 +57,17 @@ gulp.task('test-integration', function () {
 	return gulp
 		.src(['./test/integration/**/*.js'], { read : false })
 		.pipe(mocha({
-			checkLeaks : false,
-			reporter : 'spec',
-			ui : 'bdd'
-		}));
+				checkLeaks : false,
+				reporter : 'spec',
+				ui : 'bdd'
+			}).on('error', function (err) {
+				if (err.showStack) {
+					gulpUtil.log(err);
+				}
+
+				/*eslint no-invalid-this:0*/
+				this.emit('end');
+			}));
 });
 
 
@@ -68,8 +75,15 @@ gulp.task('test-unit', function () {
 	return gulp
 		.src(['./test/lib/**/*.js'], { read : false })
 		.pipe(mocha({
-			checkLeaks : true,
-			reporter : 'spec',
-			ui : 'bdd'
-		}));
+				checkLeaks : true,
+				reporter : 'spec',
+				ui : 'bdd'
+			}).on('error', function (err) {
+				if (err.showStack) {
+					gulpUtil.log(err);
+				}
+
+				/*eslint no-invalid-this:0*/
+				this.emit('end');
+			}));
 });
