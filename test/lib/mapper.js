@@ -156,6 +156,10 @@ describe('mapper', function () {
 	});
 
 	describe('initialization', function () {
+		after(function () {
+			nock.cleanAll();
+		});
+
 		it('should properly bubble error if encountered checking if index exists', function (done) {
 			nock('http://localhost:9200')
 				.head('/test-index')
@@ -317,10 +321,88 @@ describe('mapper', function () {
 				return done();
 			});
 		});
+
+		it('should prepare the mapping before creating index in Elasticsearch', function (done) {
+			nock('http://localhost:9200')
+				.head('/test-index')
+				.reply(404, function (uri, body) {
+					requestBody = body;
+					requestUri = uri;
+
+					return { statusCode : 404 };
+				})
+				.post('/test-index')
+				.reply(201, function (uri, body) {
+					requestBody = body;
+					isNewIndex = true;
+
+					return { acknowledged : true };
+				})
+				.get('/test-index/test-type/test-id/_source')
+				.reply(200, function (uri) {
+					requestUri = uri;
+
+					return JSON.stringify(mockModel);
+				});
+
+			mapper._isInitialized = false;
+
+			mapper.get('test-id', function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+
+				let mapping = JSON.parse(requestBody).mappings['test-type'];
+				should.not.exist(
+					mapping.properties.strictDynamicSubDocument.properties.someRequiredInteger.required);
+
+				return done();
+			});
+		});
+
+		it('should prepare the mapping before updating index in Elasticsearch', function (done) {
+			nock('http://localhost:9200')
+				.head('/test-index')
+				.reply(200, function (uri, body) {
+					requestBody = body;
+					requestUri = uri;
+
+					return { statusCode : 200 };
+				})
+				.put('/test-index/_mapping/test-type')
+				.reply(201, function (uri, body) {
+					requestBody = body;
+					isUpdatedMapping = true;
+
+					return { acknowledged : true };
+				})
+				.get('/test-index/test-type/test-id/_source')
+				.reply(200, function (uri) {
+					requestUri = uri;
+
+					return JSON.stringify(mockModel);
+				});
+
+			mapper._isInitialized = false;
+
+			mapper.get('test-id', function (err, result) {
+				should.not.exist(err);
+				should.exist(result);
+
+				let mapping = JSON.parse(requestBody)['test-type'];
+				should.not.exist(
+					mapping.properties.strictDynamicSubDocument.properties.someRequiredInteger.required);
+
+				return done();
+			});
+		});
 	});
 
 	describe('search', function () {
 		describe('#search', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should bubble errors from search properly', function (done) {
 				var summary;
 
@@ -410,6 +492,10 @@ describe('mapper', function () {
 
 	describe('basic CRUD operations', function () {
 		describe('#create', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should return error when doc is null', function (done) {
 				mapper.create(null, function (err, result) {
 					should.exist(err);
@@ -578,6 +664,10 @@ describe('mapper', function () {
 		});
 
 		describe('#delete', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should return error when _id is null', function (done) {
 				mapper.delete(null, function (err, result) {
 					should.exist(err);
@@ -696,18 +786,95 @@ describe('mapper', function () {
 				};
 
 				nock('http://localhost:9200')
-					.delete('/test-index/test-type/_query')
-					.reply(202, function (uri, body) {
+					.post('/test-index/test-type/_search?scroll=30s&search_type=scan')
+					.reply(200, function (uri, body) {
 						requestBody = body;
 						requestUri = uri;
 
-						return {};
+						return {
+							hits : {
+								total : 0
+							}
+						};
 					});
 
 				mapper.delete(options, function (err, result) {
 					should.not.exist(err);
 					should.exist(result);
-					requestUri.should.equal('/test-index/test-type/_query');
+					requestUri.should.contain('/test-index/test-type/_search?scroll');
+
+					return done();
+				});
+			});
+
+			it('should delete by query and scan multiple pages as needed', function (done) {
+				var
+					bulkDeleteCount = 0,
+					i = 0,
+					options = {
+						from : 0,
+						query : {
+							term : {
+								'subDocument.someBoolean' : true
+							}
+						},
+						size : 5
+					},
+					sentQuery,
+					testMatches = [];
+
+				// populate test matches
+				for (; i < 25; i++) {
+					testMatches.push({
+						_id : ['id', i].join(':')
+					});
+				}
+
+				nock('http://localhost:9200')
+					.post('/test-index/test-type/_search?scroll=30s&search_type=scan')
+					.reply(200, function (uri, body) {
+						sentQuery = JSON.parse(body);
+
+						return {
+							hits : {
+								total : 25
+							}
+						};
+					});
+
+				nock('http://localhost:9200')
+					.post('/_bulk')
+					.times(5)
+					.reply(200, function () {
+						bulkDeleteCount ++;
+
+						return { acknowledged : true };
+					});
+
+				nock('http://localhost:9200')
+					.post('/_search/scroll?scroll=30s')
+					.times(5)
+					.reply(200, function (uri, body) {
+						requestBody = body;
+						requestUri = uri;
+
+						return {
+							hits : {
+								hits : testMatches.splice(0, 5),
+								total : 25
+							}
+						};
+					});
+
+				mapper.delete(options, function (err, result) {
+					should.not.exist(err);
+					should.exist(result);
+					should.exist(sentQuery);
+					should.exist(sentQuery._source);
+					sentQuery.from.should.equal(0);
+					sentQuery.size.should.equal(5);
+					requestUri.should.contain('/_search/scroll');
+					bulkDeleteCount.should.equal(5);
 
 					return done();
 				});
@@ -715,6 +882,10 @@ describe('mapper', function () {
 		});
 
 		describe('#get', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should return error when _id is null', function (done) {
 				mapper.get(null, function (err, result) {
 					should.exist(err);
@@ -840,6 +1011,10 @@ describe('mapper', function () {
 		});
 
 		describe('#update', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should return error when doc is null', function (done) {
 				mapper.update(null, function (err, result) {
 					should.exist(err);
@@ -1002,6 +1177,10 @@ describe('mapper', function () {
 		});
 
 		describe('#upsert', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should return error when doc is null', function (done) {
 				mapper.upsert(null, function (err, result) {
 					should.exist(err);
@@ -1116,6 +1295,10 @@ describe('mapper', function () {
 
 	describe('bulk CRUD operations', function () {
 		describe('#bulkCreate', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should return error when idList is not an array', function (done) {
 				mapper.bulkCreate('invalid', [], function (err, result) {
 					should.exist(err);
@@ -1212,6 +1395,10 @@ describe('mapper', function () {
 		});
 
 		describe('#bulkDelete', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should return error when idList is not an array', function (done) {
 				mapper.bulkDelete('invalid', function (err, result) {
 					should.exist(err);
@@ -1267,6 +1454,10 @@ describe('mapper', function () {
 		});
 
 		describe('#bulkGet', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should return error when idList is not an array', function (done) {
 				mapper.bulkGet('invalid', function (err, result) {
 					should.exist(err);
@@ -1325,6 +1516,10 @@ describe('mapper', function () {
 		});
 
 		describe('#bulkUpdate', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should return error when idList is not an array', function (done) {
 				mapper.bulkUpdate('invalid', [], function (err, result) {
 					should.exist(err);
@@ -1472,6 +1667,10 @@ describe('mapper', function () {
 		});
 
 		describe('#bulkUpsert', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should return error when idList is not an array', function (done) {
 				mapper.bulkUpsert('invalid', [], function (err, result) {
 					should.exist(err);
@@ -1934,6 +2133,10 @@ describe('mapper', function () {
 		});
 
 		describe('#verifyConnection', function () {
+			after(function () {
+				nock.cleanAll();
+			});
+
 			it('should properly initialize and verify connection to elasticsearch', function (done) {
 				nock('http://localhost:9200')
 					.head('/test-index')

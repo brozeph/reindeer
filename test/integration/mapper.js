@@ -52,13 +52,7 @@ describe('mapper', function () {
 		};
 
 	after(function (done) {
-		return catsMapper._client.indices.deleteIndex(function (err) {
-			if (err) {
-				console.error(err);
-			}
-
-			return done();
-		});
+		return catsMapper._client.indices.deleteIndex(done);
 	});
 
 	describe('#bulkCreate', function () {
@@ -433,22 +427,25 @@ describe('mapper', function () {
 				}
 			};
 
-			catsMapper.search(options, function (err, foundCats) {
-				should.not.exist(err);
-				should.exist(foundCats);
-
-				catsMapper.delete(options, function (err, summary) {
+			// give it time for the documents to propegate across shards
+			setTimeout(function () {
+				catsMapper.search(options, function (err, foundCats) {
 					should.not.exist(err);
-					should.exist(summary);
+					should.exist(foundCats);
 
-					catsMapper.get(blue.animalId, function (err, retrievedDoc) {
+					catsMapper.delete(options, function (err, summary) {
 						should.not.exist(err);
-						should.not.exist(retrievedDoc);
+						should.exist(summary);
 
-						return done();
+						catsMapper.get(blue.animalId, function (err, retrievedDoc) {
+							should.not.exist(err);
+							should.not.exist(retrievedDoc);
+
+							return done();
+						});
 					});
 				});
-			});
+			}, 1000);
 		});
 	});
 
