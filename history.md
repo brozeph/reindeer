@@ -1,3 +1,7 @@
+# v2.0.3 - 02.24.2017
+
+* Added QueryBuilder so that `mongoose-middleware` style query string syntax can be parsed into an object elasticsearch can understand.
+
 # v2.0.2 - 10.06.2016
 
 * Fixed bug where decorators to the mapping were rejected by versions of Elasticsearch greater than `v2`
