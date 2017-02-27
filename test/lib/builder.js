@@ -583,6 +583,24 @@ describe('builder', function () {
 			query.sort[2].field2.should.equal('asc');
 		});
 
+		it('should build sort with object syntax, using asc and desc', function () {
+			var query = builder.buildQuery({
+				'sort' : {
+					'field' : 'asc',
+					'field1' : 'desc',
+					'field2' : 'asc'
+				}
+			});
+
+			should.exist(query.query);
+			should.exist(query.sort);
+			query.sort.should.be.a('array');
+			query.sort.length.should.equal(3);
+			query.sort[0].field.should.equal('asc');
+			query.sort[1].field1.should.equal('desc');
+			query.sort[2].field2.should.equal('asc');
+		});
+
 		it('should build desc sort parameters', function () {
 			var query = builder.buildQuery({
 				'sort' : {
