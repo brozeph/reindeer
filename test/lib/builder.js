@@ -516,6 +516,9 @@ describe('builder', function () {
 
 			should.exist(query.query);
 			should.exist(query.sort);
+			query.sort.should.be.a('array');
+			query.sort.length.should.equal(1);
+			query.sort[0].field.should.equal('asc');
 		});
 
 		it('should build asc sort with many parameters', function () {
@@ -527,6 +530,57 @@ describe('builder', function () {
 
 			should.exist(query.query);
 			should.exist(query.sort);
+			query.sort.should.be.a('array');
+			query.sort.length.should.equal(3);
+			query.sort[0].field.should.equal('asc');
+			query.sort[1].field1.should.equal('asc');
+			query.sort[2].field2.should.equal('asc');
+		});
+
+		it('should build sort as array syntax, both asc and desc', function () {
+			var query = builder.buildQuery({
+				'sort' : ['field', '-field1', 'field2']
+			});
+
+			should.exist(query.query);
+			should.exist(query.sort);
+			query.sort.should.be.a('array');
+			query.sort.length.should.equal(3);
+			query.sort[0].field.should.equal('asc');
+			query.sort[1].field1.should.equal('desc');
+			query.sort[2].field2.should.equal('asc');
+		});
+
+		it('should build sort as string syntax, both asc and desc', function () {
+			var query = builder.buildQuery({
+				'sort' : 'field, -field1, field2'
+			});
+
+			should.exist(query.query);
+			should.exist(query.sort);
+			query.sort.should.be.a('array');
+			query.sort.length.should.equal(3);
+			query.sort[0].field.should.equal('asc');
+			query.sort[1].field1.should.equal('desc');
+			query.sort[2].field2.should.equal('asc');
+		});
+
+		it('should build sort with object syntax, both asc and desc', function () {
+			var query = builder.buildQuery({
+				'sort' : {
+					'field' : 1,
+					'field1' : -1,
+					'field2' : 1
+				}
+			});
+
+			should.exist(query.query);
+			should.exist(query.sort);
+			query.sort.should.be.a('array');
+			query.sort.length.should.equal(3);
+			query.sort[0].field.should.equal('asc');
+			query.sort[1].field1.should.equal('desc');
+			query.sort[2].field2.should.equal('asc');
 		});
 
 		it('should build desc sort parameters', function () {
@@ -538,6 +592,9 @@ describe('builder', function () {
 
 			should.exist(query.query);
 			should.exist(query.sort);
+			query.sort.should.be.a('array');
+			query.sort.length.should.equal(1);
+			query.sort[0].field.should.equal('desc');
 		});
 
 		it('should build desc sort with many parameters', function () {
@@ -549,6 +606,11 @@ describe('builder', function () {
 
 			should.exist(query.query);
 			should.exist(query.sort);
+			query.sort.should.be.a('array');
+			query.sort.length.should.equal(3);
+			query.sort[0].field.should.equal('desc');
+			query.sort[1].field1.should.equal('desc');
+			query.sort[2].field2.should.equal('desc');
 		});
 
 		it('should build pagination parameters', function () {
