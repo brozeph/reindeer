@@ -1,3 +1,7 @@
+# v2.0.4 - 03.01.2017
+
+* Fixed defect where fields within a schema that type `object` did not properly support model validation
+
 # v2.0.3 - 02.24.2017
 
 * Added QueryBuilder so that `mongoose-middleware` style query string syntax can be parsed into an object elasticsearch can understand.
