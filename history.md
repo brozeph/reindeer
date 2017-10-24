@@ -1,3 +1,7 @@
+# v2.1.0 - 10.19.2017
+
+* Added support for `node-es` `v0.6` and higher as well as ElasticSearch `v5` and higher
+
 # v2.0.4 - 03.01.2017
 
 * Fixed defect where fields within a schema that type `object` did not properly support model validation
