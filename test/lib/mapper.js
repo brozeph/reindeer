@@ -192,7 +192,7 @@ describe('mapper', function () {
 
 					return { statusCode : 404 };
 				})
-				.post('/test-index')
+				.put('/test-index')
 				.reply(503, function (uri, body) {
 					requestBody = body;
 					requestUri = uri;
@@ -225,7 +225,7 @@ describe('mapper', function () {
 
 					return { statusCode : 404 };
 				})
-				.post('/test-index')
+				.put('/test-index')
 				.reply(201, function (uri, body) {
 					requestBody = body;
 					requestUri = uri;
@@ -243,13 +243,14 @@ describe('mapper', function () {
 
 			mapper._isInitialized = false;
 
-			mapper.get('test-id', function (err, result) {
-				should.not.exist(err);
-				should.exist(result);
-				isNewIndex.should.be.true;
+			mapper.get('test-id')
+				.then((result) => {
+					should.exist(result);
+					isNewIndex.should.be.true;
 
-				return done();
-			});
+					return done();
+				})
+				.catch(done);
 		});
 
 		it('should properly bubble error if encountered putting mapping', function (done) {
@@ -331,7 +332,7 @@ describe('mapper', function () {
 
 					return { statusCode : 404 };
 				})
-				.post('/test-index')
+				.put('/test-index')
 				.reply(201, function (uri, body) {
 					requestBody = body;
 					isNewIndex = true;
@@ -347,16 +348,17 @@ describe('mapper', function () {
 
 			mapper._isInitialized = false;
 
-			mapper.get('test-id', function (err, result) {
-				should.not.exist(err);
-				should.exist(result);
+			mapper.get('test-id')
+				.then((result) => {
+					should.exist(result);
 
-				let mapping = JSON.parse(requestBody).mappings['test-type'];
-				should.not.exist(
-					mapping.properties.strictDynamicSubDocument.properties.someRequiredInteger.required);
+					let mapping = JSON.parse(requestBody).mappings['test-type'];
+					should.not.exist(
+						mapping.properties.strictDynamicSubDocument.properties.someRequiredInteger.required);	
 
-				return done();
-			});
+					return done();				
+				})
+				.catch(done);
 		});
 
 		it('should prepare the mapping before updating index in Elasticsearch', function (done) {
@@ -509,7 +511,7 @@ describe('mapper', function () {
 
 			it('should properly bubble errors', function (done) {
 				nock('http://localhost:9200')
-					.put('/test-index/test-type/bad-id?op_type=create')
+					.put('/test-index/test-type/bad-id?op_type=index')
 					.reply(503, function (uri, body) {
 						requestBody = body;
 						requestUri = uri;
@@ -520,20 +522,21 @@ describe('mapper', function () {
 						};
 					});
 
-				mapper.create('bad-id', mockModel, function (err, result) {
-					should.exist(err);
-					should.not.exist(result);
-					should.exist(err.statusCode);
-					err.statusCode.should.equal(503);
-					requestUri.should.equal('/test-index/test-type/bad-id?op_type=create');
+				mapper.create('bad-id', mockModel)
+					.then(() => done(new Error('should properly return error when attempting to create a doc')))
+					.catch((err) => {
+						should.exist(err);
+						should.exist(err.statusCode);
+						err.statusCode.should.equal(503);
+						requestUri.should.equal('/test-index/test-type/bad-id?op_type=index');
 
-					return done();
-				});
+						return done();
+					});
 			});
 
 			it('should properly PUT when _id is supplied', function (done) {
 				nock('http://localhost:9200')
-					.put('/test-index/test-type/test-id?op_type=create')
+					.put('/test-index/test-type/test-id?op_type=index')
 					.reply(201, function (uri, body) {
 						requestBody = body;
 						requestUri = uri;
@@ -547,24 +550,25 @@ describe('mapper', function () {
 						};
 					});
 
-				mapper.create('test-id', mockModel, function (err, result) {
-					should.not.exist(err);
-					should.exist(result);
-					should.exist(result.strictDynamicSubDocument);
-					should.exist(result.strictDynamicSubDocument.someDate);
-					(result.strictDynamicSubDocument.someDate instanceof Date)
-						.should.be.true;
-					requestUri.should.equal('/test-index/test-type/test-id?op_type=create');
+				mapper.create('test-id', mockModel)
+					.then((result) => {
+						should.exist(result);
+						should.exist(result.strictDynamicSubDocument);
+						should.exist(result.strictDynamicSubDocument.someDate);
+						(result.strictDynamicSubDocument.someDate instanceof Date)
+							.should.be.true;
+						requestUri.should.equal('/test-index/test-type/test-id?op_type=index');
 
-					return done();
-				});
+						return done();
+					})
+					.catch(done);
 			});
 
-			it('should properly POST when _id is not supplied', function (done) {
+			it('should properly PUT when _id is not supplied', function (done) {
 				var _id;
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type?op_type=create')
+					.post('/test-index/test-type?op_type=index')
 					.reply(201, function (uri, body) {
 						requestBody = body;
 						requestUri = uri;
@@ -589,7 +593,7 @@ describe('mapper', function () {
 						should.exist(result.strictDynamicSubDocument.someDate);
 						(result.strictDynamicSubDocument.someDate instanceof Date)
 							.should.be.true;
-						requestUri.should.equal('/test-index/test-type?op_type=create');
+						requestUri.should.equal('/test-index/test-type?op_type=index');
 						should.exist(_id);
 						_id.should.equal('random');
 
@@ -600,7 +604,7 @@ describe('mapper', function () {
 
 			it('should properly PUT when _id.path is supplied', function (done) {
 				nock('http://localhost:9200')
-					.put('/test-index/test-type/test-id?op_type=create')
+					.put('/test-index/test-type/test-id?op_type=index')
 					.reply(201, function (uri, body) {
 						requestBody = body;
 						requestUri = uri;
@@ -614,19 +618,20 @@ describe('mapper', function () {
 						};
 					});
 
-				mapper.create(mockModel, function (err, result) {
-					should.not.exist(err);
-					should.exist(result);
+				mapper.create(mockModel)
+					.then((result) => {
+						should.exist(result);
 
-					requestUri.should.equal('/test-index/test-type/test-id?op_type=create');
+						requestUri.should.equal('/test-index/test-type/test-id?op_type=index');
 
-					return done();
-				});
+						return done();
+					})
+					.catch(done);
 			});
 
 			it('should properly support _id overloaded as options', function (done) {
 				nock('http://localhost:9200')
-					.put('/test-index/test-type/test-id?ttl=1d&op_type=create')
+					.put('/test-index/test-type/test-id?ttl=1d&op_type=index')
 					.reply(201, function (uri, body) {
 						requestBody = body;
 						requestUri = uri;
@@ -644,22 +649,21 @@ describe('mapper', function () {
 				delete mockModel.identity;
 
 				mapper.create({
-						_id : 'test-id',
-						ttl : '1d'
-					},
-					mockModel,
-					function (err, result, resultId) {
-						should.not.exist(err);
+					_id : 'test-id',
+					ttl : '1d'
+				},
+				mockModel)
+					.then((result) => {
 						should.exist(result);
-						should.not.exist(resultId);
 						should.exist(result.strictDynamicSubDocument);
 						should.exist(result.strictDynamicSubDocument.someDate);
 						(result.strictDynamicSubDocument.someDate instanceof Date)
 							.should.be.true;
-						requestUri.should.equal('/test-index/test-type/test-id?ttl=1d&op_type=create');
+						requestUri.should.equal('/test-index/test-type/test-id?ttl=1d&op_type=index');
 
 						return done();
-					});
+					})
+					.catch(done);
 			});
 		});
 
@@ -786,7 +790,7 @@ describe('mapper', function () {
 				};
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/_search?scroll=30s&search_type=scan')
+					.post('/test-index/test-type/_search?scroll=30s')
 					.reply(200, function (uri, body) {
 						requestBody = body;
 						requestUri = uri;
@@ -798,13 +802,14 @@ describe('mapper', function () {
 						};
 					});
 
-				mapper.delete(options, function (err, result) {
-					should.not.exist(err);
-					should.exist(result);
-					requestUri.should.contain('/test-index/test-type/_search?scroll');
+				mapper.delete(options)
+					.then((result) => {
+						should.exist(result);
+						requestUri.should.contain('/test-index/test-type/_search?scroll');
 
-					return done();
-				});
+						return done();
+					})
+					.catch(done);
 			});
 
 			it('should delete by query and scan multiple pages as needed', function (done) {
@@ -831,7 +836,7 @@ describe('mapper', function () {
 				}
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/_search?scroll=30s&search_type=scan')
+					.post('/test-index/test-type/_search?scroll=30s')
 					.reply(200, function (uri, body) {
 						sentQuery = JSON.parse(body);
 
@@ -866,18 +871,19 @@ describe('mapper', function () {
 						};
 					});
 
-				mapper.delete(options, function (err, result) {
-					should.not.exist(err);
-					should.exist(result);
-					should.exist(sentQuery);
-					should.exist(sentQuery._source);
-					sentQuery.from.should.equal(0);
-					sentQuery.size.should.equal(5);
-					requestUri.should.contain('/_search/scroll');
-					bulkDeleteCount.should.equal(5);
+				mapper.delete(options)
+					.then((result) => {
+						should.exist(result);
+						should.exist(sentQuery);
+						should.exist(sentQuery._source);
+						sentQuery.from.should.equal(0);
+						sentQuery.size.should.equal(5);
+						requestUri.should.contain('/_search/scroll');
+						bulkDeleteCount.should.equal(5);
 
-					return done();
-				});
+						return done();
+					})
+					.catch(done);
 			});
 		});
 

@@ -94,14 +94,19 @@ describe('mapper', function () {
 					return cat.animalId;
 				});
 
-			catsMapper.bulkCreate(idList, docList, function (err, result) {
-				should.exist(err);
-				should.not.exist(result);
-				should.exist(err.statusCode);
-				err.statusCode.should.equal(409);
+			catsMapper.bulkCreate(idList, docList)
+				.then((err, result) => {
+					should.exist(err);
+					should.not.exist(result);
+					should.exist(err.statusCode);
+					err.statusCode.should.equal(409);
 
-				return done();
-			});
+					return done();
+				})
+				.catch((err) => {
+					should.exist(err);
+					return done();
+				});
 		});
 
 		it('should properly create in bulk without ids', function (done) {
@@ -418,6 +423,10 @@ describe('mapper', function () {
 				.catch(done);
 		});
 
+		/* Elasticsearch has removed deleteByQuery functionality in the core and moved capability to a plugin */
+		/* https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-delete-by-query.html */
+
+		/*
 		it('should properly delete by query', function (done) {
 			var options = {
 				query : {
@@ -446,7 +455,7 @@ describe('mapper', function () {
 					});
 				});
 			}, 1000);
-		});
+		});*/
 	});
 
 	describe('#get', function () {
