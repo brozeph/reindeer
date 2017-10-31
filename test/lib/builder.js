@@ -41,11 +41,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			should.exist(query.query.filtered.query.bool.must);
-			query.query.filtered.query.bool.must.should.be.a('array');
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must);
+			query.query.bool.must.should.be.a('array');
 		});
 
 		it('should build notEqual queries', function () {
@@ -60,11 +58,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			should.exist(query.query.filtered.query.bool.must_not);
-			query.query.filtered.query.bool.must_not.should.be.a('array');
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must_not);
+			query.query.bool.must_not.should.be.a('array');
 		});
 
 		it('should build notEqual queries using ne syntax', function () {
@@ -79,11 +75,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			should.exist(query.query.filtered.query.bool.must_not);
-			query.query.filtered.query.bool.must_not.should.be.a('array');
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must_not);
+			query.query.bool.must_not.should.be.a('array');
 		});
 
 		it('should build notEqual queries using notEqualTo syntax', function () {
@@ -98,11 +92,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			should.exist(query.query.filtered.query.bool.must_not);
-			query.query.filtered.query.bool.must_not.should.be.a('array');
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must_not);
+			query.query.bool.must_not.should.be.a('array');
 		});
 
 		it('should build mandatory exact queries', function () {
@@ -117,11 +109,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			should.exist(query.query.filtered.query.bool.must);
-			query.query.filtered.query.bool.must.should.be.a('array');
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must);
+			query.query.bool.must.should.be.a('array');
 		});
 
 		it('should build mandatory startsWith queries', function () {
@@ -136,11 +126,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			should.exist(query.query.filtered.query.bool.must);
-			query.query.filtered.query.bool.must.should.be.a('array');
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must);
+			query.query.bool.must.should.be.a('array');
 		});
 
 		it('should build mandatory endsWith queries', function () {
@@ -155,11 +143,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			should.exist(query.query.filtered.query.bool.must);
-			query.query.filtered.query.bool.must.should.be.a('array');
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must);
+			query.query.bool.must.should.be.a('array');
 		});
 
 		it('should build mandatory contains queries', function () {
@@ -174,11 +160,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			should.exist(query.query.filtered.query.bool.must);
-			query.query.filtered.query.bool.must.should.be.a('array');
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must);
+			query.query.bool.must.should.be.a('array');
 		});
 
 		it('should build mandatory exists queries for fields', function () {
@@ -191,9 +175,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must);
+			query.query.bool.must.should.be.a('array');
 		});
 
 		it('should build mandatory exists queries for many fields', function () {
@@ -206,9 +190,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must);
+			query.query.bool.must.should.be.a('array');
 		});
 
 		it('should build optional contains queries', function () {
@@ -223,12 +207,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional exact queries', function () {
@@ -243,12 +224,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional beginsWith queries for fields it is not expecting', function () {
@@ -263,12 +241,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional endsWith queries for fields it is not expecting', function () {
@@ -283,12 +258,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional exact queries for fields it is not expecting', function () {
@@ -303,12 +275,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional contains queries for fields it is not expecting', function () {
@@ -323,12 +292,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional greaterThan queries', function () {
@@ -343,12 +309,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional greaterThanEqual queries', function () {
@@ -363,12 +326,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional greaterThanEqual queries using gte syntax', function () {
@@ -383,12 +343,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional lessThan queries', function () {
@@ -403,12 +360,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional lessThanEqual queries', function () {
@@ -423,12 +377,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional lessThanEqual queries using lte syntax', function () {
@@ -443,12 +394,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional missing queries', function () {
@@ -461,12 +409,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional missing queries for many fields', function () {
@@ -479,12 +424,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional notEqual queries', function () {
@@ -499,12 +441,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			// This is as far as we can test. chai stumbles over the fact that
-			// the query has a should property, which is a "reserved word" in
-			// this area
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build asc sort parameters', function () {
@@ -654,11 +593,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.query);
-			should.exist(query.query.filtered.query.bool);
-			should.exist(query.query.filtered.query.bool.must);
-			query.query.filtered.query.bool.must.should.be.a('array');
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must);
+			query.query.bool.must.should.be.a('array');
 		});
 
 		it('should build optional exact query with many criteria', function () {
@@ -673,9 +610,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build optional exact query with many criteria input as a string', function () {
@@ -690,9 +627,9 @@ describe('builder', function () {
 			});
 
 			should.exist(query.query);
-			should.exist(query.query.filtered);
-			should.exist(query.query.filtered.filter);
-			should.exist(query.query.filtered.filter.bool);
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.should);
+			query.query.bool.should.should.be.a('array');
 		});
 
 		it('should build query for limiting returned fields', function () {
