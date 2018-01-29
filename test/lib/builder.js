@@ -195,6 +195,36 @@ describe('builder', function () {
 			query.query.bool.must.should.be.a('array');
 		});
 
+		it('should build mandatory missing queries for fields', function () {
+			var query = builder.buildQuery({
+				'filters' : {
+					'mandatory' : {
+						'missing' : 'test'
+					}
+				}
+			});
+
+			should.exist(query.query);
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must_not);
+			query.query.bool.must_not.should.be.a('array');
+		});
+
+		it('should build mandatory missing queries for fields', function () {
+			var query = builder.buildQuery({
+				'filters' : {
+					'mandatory' : {
+						'missing' : 'test,test1,test2'
+					}
+				}
+			});
+
+			should.exist(query.query);
+			should.exist(query.query.bool);
+			should.exist(query.query.bool.must_not);
+			query.query.bool.must_not.should.be.a('array');
+		});
+
 		it('should build optional contains queries', function () {
 			var query = builder.buildQuery({
 				'filters' : {
