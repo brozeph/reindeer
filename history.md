@@ -1,3 +1,7 @@
+# v2.1.2 - 01.29.2018
+
+* Fixed bug in QueryBuilder where `mandatory[missing]` filter was not working because of ElasticSearch `v5` update
+
 # v2.1.1 - 10.30.2017
 
 * Fixed bug where `filtered` query is replaced by `bool` query in ElasticSearch `v5` and higher
