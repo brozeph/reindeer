@@ -21,7 +21,7 @@
       - 2
       - "1tbs"
     callback-return: 2
-    camelcase: 0
+    camelcase: 2
     comma-dangle:
       - 2
       - "never"
