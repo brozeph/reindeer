@@ -19,7 +19,8 @@
   "repository": "git://github.com/brozeph/reindeer.git",
   "homepage": "http://github.com/brozeph/reindeer",
   "dependencies": {
-    "es": "^0.6.0"
+    "es": "^0.6.0",
+    "lodash.clonedeep": "^4.5.0"
   },
   "devDependencies": {
     "chai": "^3.2.0",
