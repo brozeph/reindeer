@@ -1,3 +1,7 @@
+# v2.1.3 - 10.23.2018
+
+* Fixed mapper `initalize` function to support deep cloning of objects
+
 # v2.1.2 - 01.29.2018
 
 * Fixed bug in QueryBuilder where `mandatory[missing]` filter was not working because of ElasticSearch `v5` update
