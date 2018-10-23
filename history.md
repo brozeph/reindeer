@@ -1,6 +1,6 @@
 # v2.1.3 - 10.23.2018
 
-* Fixed mapper `initalize` function to support deep cloning of objects
+* Fixed mapper `initalize` function to support deep cloning of options
 
 # v2.1.2 - 01.29.2018
 
