@@ -1,16 +1,11 @@
 /* eslint no-magic-numbers : 0 */
 /* eslint no-unused-expressions : 0 */
-var
-	chai = require('chai'),
-	should = chai.should(),
+import chai from 'chai';
+import validators from '../../src/validators.js';
 
-	validators = require('../../src/validators.js');
+const should = chai.should();
 
-// jshint expr : true
-// jshint unused : false
 describe('validators', () => {
-	'use strict';
-
 	describe('#attachment', () => {
 		var isValid = validators.attachment();
 

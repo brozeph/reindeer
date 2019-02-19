@@ -2,15 +2,16 @@
 /* eslint no-undefined : 0 */
 /* eslint no-unused-expressions : 0 */
 /* eslint sort-keys : 0 */
-var
-	chai = require('chai'),
-	{ Mapper } = require('../../src/mapper.js'),
-	nock = require('nock'),
+import chai from 'chai';
+import { Mapper } from '../../src/mapper.js';
+import nock from 'nock';
+
+const
 	should = chai.should(),
 	testMapping = require('../test-mapping.json');
 
 describe('mapper', () => {
-	var
+	let
 		isNewIndex = false,
 		isUpdatedMapping = false,
 		mapper,

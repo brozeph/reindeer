@@ -1,252 +1,254 @@
 /* eslint no-undefined : 0 */
 import validators from './validators';
 
-module.exports = (matchFields, diagnosticsFilterKey, self = {}) => {
+function buildFilters (queryBuilder, filterSet) {
+	let
+		filters = [],
+		getMatch = (field, value, isPhrase) => {
+			let filter = {
+				match : {}
+			};
 
-	function buildFilters (filterSet) {
-		let
-			filters = [],
-			getMatch = (field, value, isPhrase) => {
-				let filter = {
-					match : {}
-				};
+			isPhrase = isPhrase || false;
 
-				isPhrase = isPhrase || false;
+			filter.match[field] = {
+				query : value
+			};
 
-				filter.match[field] = {
-					query : value
-				};
+			if (isPhrase) {
+				filter.match[field].type = 'phrase';
+			} else {
+				filter.match[field].operator = 'and';
+			}
 
-				if (isPhrase) {
-					filter.match[field].type = 'phrase';
-				} else {
-					filter.match[field].operator = 'and';
-				}
+			return filter;
+		},
+		getMatches = (field, value) => {
+			if (typeof value === 'string' && /\,/g.test(value)) {
+				value = value.split(/\,/g);
+			}
 
-				return filter;
-			},
-			getMatches = (field, value) => {
-				if (typeof value === 'string' && /\,/g.test(value)) {
-					value = value.split(/\,/g);
-				}
+			if (Array.isArray(value)) {
+				return value.map((item) => {
+					return getMatch(field, item);
+				});
+			}
 
-				if (Array.isArray(value)) {
-					return value.map((item) => {
-						return getMatch(field, item);
-					});
-				}
+			return [getMatch(field, value)];
+		},
+		getRange = (field, value) => {
+			let filter = {
+				range : {}
+			};
 
-				return [getMatch(field, value)];
-			},
-			getRange = (field, value) => {
-				let filter = {
-					range : {}
-				};
+			filter.range[field] = value;
 
-				filter.range[field] = value;
+			return filter;
+		},
+		getTerm = (field, value) => {
+			let filter = {
+				term : {}
+			};
 
-				return filter;
-			},
-			getTerm = (field, value) => {
-				let filter = {
-					term : {}
-				};
+			filter.term[field] = value;
 
-				filter.term[field] = value;
+			return filter;
+		},
+		getTerms = (field, value) => {
+			if (typeof value === 'string' && /\,/g.test(value)) {
+				value = value.split(/\,/g);
+			}
 
-				return filter;
-			},
-			getTerms = (field, value) => {
-				if (typeof value === 'string' && /\,/g.test(value)) {
-					value = value.split(/\,/g);
-				}
+			if (Array.isArray(value)) {
+				return value.map((item) => {
+					return getTerm(field, item);
+				});
+			}
 
-				if (Array.isArray(value)) {
-					return value.map((item) => {
-						return getTerm(field, item);
-					});
-				}
+			return [getTerm(field, value)];
+		},
+		gt,
+		gte,
+		lt,
+		lte,
+		missingFilter;
 
-				return [getTerm(field, value)];
-			},
-			gt,
-			gte,
-			lt,
-			lte,
-			missingFilter;
-
-		if (filterSet.beginsWith) {
-			Object.keys(filterSet.beginsWith).forEach((field) => {
-				if (matchFields.indexOf(field) >= 0) {
-					filters.push(
-						getMatch(
-							field,
-							[filterSet.beginsWith[field]].join('')));
-
-					return;
-				}
-
+	if (filterSet.beginsWith) {
+		Object.keys(filterSet.beginsWith).forEach((field) => {
+			if (queryBuilder.matchFields.indexOf(field) >= 0) {
 				filters.push(
-					getTerm(
+					getMatch(
 						field,
-						[filterSet.beginsWith[field], '*'].join('')));
-			});
-		}
+						[filterSet.beginsWith[field]].join('')));
 
-		if (filterSet.contains) {
-			Object.keys(filterSet.contains).forEach((field) => {
-				if (matchFields.indexOf(field) >= 0) {
-					filters.push(
-						getMatch(
-							field,
-							[filterSet.contains[field]].join('')));
+				return;
+			}
 
-					return;
-				}
+			filters.push(
+				getTerm(
+					field,
+					[filterSet.beginsWith[field], '*'].join('')));
+		});
+	}
 
+	if (filterSet.contains) {
+		Object.keys(filterSet.contains).forEach((field) => {
+			if (queryBuilder.matchFields.indexOf(field) >= 0) {
 				filters.push(
-					getTerm(
+					getMatch(
 						field,
-						['*', filterSet.contains[field], '*'].join('')));
-			});
-		}
+						[filterSet.contains[field]].join('')));
 
-		if (filterSet.endsWith) {
-			Object.keys(filterSet.endsWith).forEach((field) => {
-				if (matchFields.indexOf(field) >= 0) {
-					filters.push(
-						getMatch(
-							field,
-							[filterSet.endsWith[field]].join('')));
+				return;
+			}
 
-					return;
-				}
+			filters.push(
+				getTerm(
+					field,
+					['*', filterSet.contains[field], '*'].join('')));
+		});
+	}
 
+	if (filterSet.endsWith) {
+		Object.keys(filterSet.endsWith).forEach((field) => {
+			if (queryBuilder.matchFields.indexOf(field) >= 0) {
 				filters.push(
-					getTerm(
+					getMatch(
 						field,
-						['*', filterSet.endsWith[field]].join('')));
-			});
-		}
+						[filterSet.endsWith[field]].join('')));
 
-		if (filterSet.exact) {
-			Object.keys(filterSet.exact).forEach((field) => {
-				if (matchFields.indexOf(field) >= 0) {
-					filters = filters.concat(
-						getMatches(
-							field,
-							[filterSet.exact[field]].join(''),
-							true));
+				return;
+			}
 
-					return;
-				}
+			filters.push(
+				getTerm(
+					field,
+					['*', filterSet.endsWith[field]].join('')));
+		});
+	}
 
+	if (filterSet.exact) {
+		Object.keys(filterSet.exact).forEach((field) => {
+			if (queryBuilder.matchFields.indexOf(field) >= 0) {
 				filters = filters.concat(
-					getTerms(
+					getMatches(
 						field,
-						filterSet.exact[field]));
-			});
+						[filterSet.exact[field]].join(''),
+						true));
+
+				return;
+			}
+
+			filters = filters.concat(
+				getTerms(
+					field,
+					filterSet.exact[field]));
+		});
+	}
+
+	// handle checks for the existence of a field
+	if (filterSet.exists) {
+		if (typeof filterSet.exists === 'string' && /\,/g.test(filterSet.exists)) {
+			filterSet.exists = filterSet.exists.split(/\,/g);
 		}
 
-		// handle checks for the existence of a field
-		if (filterSet.exists) {
-			if (typeof filterSet.exists === 'string' && /\,/g.test(filterSet.exists)) {
-				filterSet.exists = filterSet.exists.split(/\,/g);
-			}
+		if (!Array.isArray(filterSet.exists)) {
+			filterSet.exists = [filterSet.exists];
+		}
 
-			if (!Array.isArray(filterSet.exists)) {
-				filterSet.exists = [filterSet.exists];
-			}
+		filterSet.exists.forEach((field) => {
+			let existsFilter = {
+				exists : {
+					field
+				}
+			};
 
-			filterSet.exists.forEach((field) => {
-				let existsFilter = {
+			filters.push(existsFilter);
+		});
+	}
+
+	if (filterSet.greaterThan || filterSet.gt) {
+		gt = filterSet.greaterThan || filterSet.gt;
+
+		Object.keys(gt).forEach((field) => {
+			filters.push(getRange(field, {
+				gt : gt[field]
+			}));
+		});
+	}
+
+	if (filterSet.greaterThanEqual || filterSet.gte) {
+		gte = filterSet.greaterThanEqual || filterSet.gte;
+
+		Object.keys(gte).forEach((field) => {
+			filters.push(getRange(field, {
+				gte : gte[field]
+			}));
+		});
+	}
+
+	if (filterSet.lessThan || filterSet.lt) {
+		lt = filterSet.lessThan || filterSet.lt;
+
+		Object.keys(lt).forEach((field) => {
+			filters.push(getRange(field, {
+				lt : lt[field]
+			}));
+		});
+	}
+
+	if (filterSet.lessThanEqual || filterSet.lte) {
+		lte = filterSet.lessThanEqual || filterSet.lte;
+
+		Object.keys(lte).forEach((field) => {
+			filters.push(getRange(field, {
+				lte : lte[field]
+			}));
+		});
+	}
+
+	// handle checks for the non-existence of a field
+	if (filterSet.missing) {
+		if (typeof filterSet.missing === 'string' && /\,/g.test(filterSet.missing)) {
+			filterSet.missing = filterSet.missing.split(/\,/g);
+		}
+
+		if (!Array.isArray(filterSet.missing)) {
+			filterSet.missing = [filterSet.missing];
+		}
+
+		filterSet.missing.forEach((field) => {
+			missingFilter = {
+				missing : {
 					exists : {
 						field
 					}
-				};
+				}
+			};
 
-				filters.push(existsFilter);
-			});
-		}
-
-		if (filterSet.greaterThan || filterSet.gt) {
-			gt = filterSet.greaterThan || filterSet.gt;
-
-			Object.keys(gt).forEach((field) => {
-				filters.push(getRange(field, {
-					gt : gt[field]
-				}));
-			});
-		}
-
-		if (filterSet.greaterThanEqual || filterSet.gte) {
-			gte = filterSet.greaterThanEqual || filterSet.gte;
-
-			Object.keys(gte).forEach((field) => {
-				filters.push(getRange(field, {
-					gte : gte[field]
-				}));
-			});
-		}
-
-		if (filterSet.lessThan || filterSet.lt) {
-			lt = filterSet.lessThan || filterSet.lt;
-
-			Object.keys(lt).forEach((field) => {
-				filters.push(getRange(field, {
-					lt : lt[field]
-				}));
-			});
-		}
-
-		if (filterSet.lessThanEqual || filterSet.lte) {
-			lte = filterSet.lessThanEqual || filterSet.lte;
-
-			Object.keys(lte).forEach((field) => {
-				filters.push(getRange(field, {
-					lte : lte[field]
-				}));
-			});
-		}
-
-		// handle checks for the non-existence of a field
-		if (filterSet.missing) {
-			if (typeof filterSet.missing === 'string' && /\,/g.test(filterSet.missing)) {
-				filterSet.missing = filterSet.missing.split(/\,/g);
-			}
-
-			if (!Array.isArray(filterSet.missing)) {
-				filterSet.missing = [filterSet.missing];
-			}
-
-			filterSet.missing.forEach((field) => {
-				missingFilter = {
-					missing : {
-						exists : {
-							field
-						}
-					}
-				};
-
-				filters.push(missingFilter);
-			});
-		}
-
-		if (filterSet.ne) {
-			Object.keys(filterSet.ne).forEach((field) => {
-				filters.push(getMatch(
-					field,
-					[filterSet.ne[field]].join('')));
-			});
-		}
-
-		// return the array of filters to the caller
-		return filters;
+			filters.push(missingFilter);
+		});
 	}
 
-	// takes queryOptions typically used directly by Mongoose Middleware
-	// and converts them to a formatted ElasticSearch query
-	self.buildQuery = (queryOptions) => {
+	if (filterSet.ne) {
+		Object.keys(filterSet.ne).forEach((field) => {
+			filters.push(getMatch(
+				field,
+				[filterSet.ne[field]].join('')));
+		});
+	}
+
+	// return the array of filters to the caller
+	return filters;
+}
+
+class QueryBuilder {
+	constructor (matchFields, diagnosticsFilterKey) {
+		this.matchFields = matchFields;
+		this.diagnosticsFilterKey = diagnosticsFilterKey;
+	}
+
+	buildQuery (queryOptions) {
 		let
 			defaultQuery = {
 				'match_all' : {}
@@ -278,7 +280,7 @@ module.exports = (matchFields, diagnosticsFilterKey, self = {}) => {
 		}
 
 		// add analytics filters to the query
-		if (filters && filters.diagnostics && diagnosticsFilterKey) {
+		if (filters && filters.diagnostics && this.diagnosticsFilterKey) {
 			if (!Array.isArray(filters.diagnostics)) {
 				if (/\,/g.test(filters.diagnostics)) {
 					filters.diagnostics = filters.diagnostics.split(/\,/);
@@ -290,9 +292,9 @@ module.exports = (matchFields, diagnosticsFilterKey, self = {}) => {
 			queryBool.filter = queryBool.filter || {};
 
 			filters.diagnostics.forEach((stat) => {
-				if (typeof diagnosticsFilterKey[stat] !== 'undefined') {
+				if (typeof this.diagnosticsFilterKey[stat] !== 'undefined') {
 					queryBool.filter.terms = (queryBool.filter.terms || []).concat(
-						diagnosticsFilterKey[stat]());
+						this.diagnosticsFilterKey[stat]());
 				}
 			});
 		}
@@ -311,7 +313,7 @@ module.exports = (matchFields, diagnosticsFilterKey, self = {}) => {
 				filters.mandatory.notEqual = undefined;
 				filters.mandatory.notEqualTo = undefined;
 
-				buildFilters(mustNot).forEach((filter) => {
+				buildFilters(this, mustNot).forEach((filter) => {
 					// right now, only exact match is support
 					if (filter.match) {
 						queryBool['must_not'] = (queryBool['must_not'] || []).concat(filter);
@@ -320,7 +322,7 @@ module.exports = (matchFields, diagnosticsFilterKey, self = {}) => {
 				});
 			}
 
-			buildFilters(filters.mandatory).forEach((filter) => {
+			buildFilters(this, filters.mandatory).forEach((filter) => {
 				if (filter.match) {
 					queryBool.must = (queryBool.must || []).concat(filter);
 
@@ -339,7 +341,7 @@ module.exports = (matchFields, diagnosticsFilterKey, self = {}) => {
 
 		// add optional filters to the query
 		if (filters && filters.optional) {
-			buildFilters(filters.optional).forEach((filter) => {
+			buildFilters(this, filters.optional).forEach((filter) => {
 				if (filter.match) {
 					queryBool.should = (Array.isArray(queryBool.should) ? queryBool.should : [])
 						.concat(filter);
@@ -462,7 +464,7 @@ module.exports = (matchFields, diagnosticsFilterKey, self = {}) => {
 
 		// return to caller
 		return query;
-	};
+	}
+}
 
-	return self;
-};
+module.exports = { QueryBuilder };
