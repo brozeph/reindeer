@@ -1,16 +1,13 @@
-/*eslint no-undefined:0*/
-var validators = require('./validators');
+/* eslint no-undefined : 0 */
+import validators from './validators';
 
-module.exports = function (matchFields, diagnosticsFilterKey, self) {
-	'use strict';
-
-	self = self || {};
+module.exports = (matchFields, diagnosticsFilterKey, self = {}) => {
 
 	function buildFilters (filterSet) {
-		var
+		let
 			filters = [],
-			getMatch = function (field, value, isPhrase) {
-				var filter = {
+			getMatch = (field, value, isPhrase) => {
+				let filter = {
 					match : {}
 				};
 
@@ -28,7 +25,7 @@ module.exports = function (matchFields, diagnosticsFilterKey, self) {
 
 				return filter;
 			},
-			getMatches = function (field, value) {
+			getMatches = (field, value) => {
 				if (typeof value === 'string' && /\,/g.test(value)) {
 					value = value.split(/\,/g);
 				}
@@ -41,8 +38,8 @@ module.exports = function (matchFields, diagnosticsFilterKey, self) {
 
 				return [getMatch(field, value)];
 			},
-			getRange = function (field, value) {
-				var filter = {
+			getRange = (field, value) => {
+				let filter = {
 					range : {}
 				};
 
@@ -50,8 +47,8 @@ module.exports = function (matchFields, diagnosticsFilterKey, self) {
 
 				return filter;
 			},
-			getTerm = function (field, value) {
-				var filter = {
+			getTerm = (field, value) => {
+				let filter = {
 					term : {}
 				};
 
@@ -59,7 +56,7 @@ module.exports = function (matchFields, diagnosticsFilterKey, self) {
 
 				return filter;
 			},
-			getTerms = function (field, value) {
+			getTerms = (field, value) => {
 				if (typeof value === 'string' && /\,/g.test(value)) {
 					value = value.split(/\,/g);
 				}
@@ -162,9 +159,9 @@ module.exports = function (matchFields, diagnosticsFilterKey, self) {
 			}
 
 			filterSet.exists.forEach((field) => {
-				var existsFilter = {
+				let existsFilter = {
 					exists : {
-						field : field
+						field
 					}
 				};
 
@@ -226,7 +223,7 @@ module.exports = function (matchFields, diagnosticsFilterKey, self) {
 				missingFilter = {
 					missing : {
 						exists : {
-							field : field
+							field
 						}
 					}
 				};
@@ -249,8 +246,8 @@ module.exports = function (matchFields, diagnosticsFilterKey, self) {
 
 	// takes queryOptions typically used directly by Mongoose Middleware
 	// and converts them to a formatted ElasticSearch query
-	self.buildQuery = function (queryOptions) {
-		var
+	self.buildQuery = (queryOptions) => {
+		let
 			defaultQuery = {
 				'match_all' : {}
 			},
@@ -275,7 +272,8 @@ module.exports = function (matchFields, diagnosticsFilterKey, self) {
 		if (filters && filters.keyword) {
 			filter = {
 				match : filters.keyword
-			}
+			};
+
 			queryBool.must = (queryBool.must || []).concat(filter);
 		}
 
@@ -306,7 +304,7 @@ module.exports = function (matchFields, diagnosticsFilterKey, self) {
 			if (filters.mandatory.ne || filters.mandatory.notEqual || filters.mandatory.notEqualTo) {
 				mustNot = {
 					'ne': filters.mandatory.ne || filters.mandatory.notEqual || filters.mandatory.notEqualTo
-				}
+				};
 
 				// remove notEqual parameters so they aren't processed again
 				filters.mandatory.ne = undefined;
@@ -419,7 +417,7 @@ module.exports = function (matchFields, diagnosticsFilterKey, self) {
 			query.sort = query.sort || [];
 
 			sortOptions.forEach((field) => {
-				var sortValue = {};
+				let sortValue = {};
 
 				if (field.startsWith('-')) {
 					sortValue[field.substring(1)] = 'desc';

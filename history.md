@@ -1,3 +1,8 @@
+# v3.0.0 - 02.19.2019
+
+* Moved to ESNext with Babel transpile
+* Updated Node version dependencies for Travis CI
+
 # v2.1.3 - 10.23.2018
 
 * Fixed mapper `initalize` function to support deep cloning of options

@@ -1,39 +1,35 @@
-/*eslint no-magic-numbers:0*/
-/*eslint no-unused-expressions:0*/
+/* eslint no-magic-numbers : 0 */
+/* eslint no-unused-expressions : 0 */
 var
 	builder,
 	chai = require('chai'),
-	should = chai.should(),
+	QueryBuilder = require('../../src/builder.js'),
+	should = chai.should();
 
-	QueryBuilder = require('../../lib/builder.js');
-
-describe('builder', function () {
+describe('builder', () => {
 	'use strict';
 
-	beforeEach(function () {
+	beforeEach(() => {
 		builder = new QueryBuilder(
 			['field', 'testField'],
 			{
-				'missingTestField' : function () {
-					return [{
-						missing : {
-							field : 'test'
-						}
-					}];
-				}
+				'missingTestField' : () => [{
+					missing : {
+						field : 'test'
+					}
+				}]
 			}
 		);
 	});
 
-	describe('#buildQuery', function () {
-
-		it('should return a match_all query if query is empty', function () {
+	describe('#buildQuery', () => {
+		it('should return a match_all query if query is empty', () => {
 			var query = builder.buildQuery({});
 
 			should.exist(query.query['match_all']);
 		});
 
-		it('should translate keyword filters', function () {
+		it('should translate keyword filters', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'keyword' : 'test search'
@@ -46,7 +42,7 @@ describe('builder', function () {
 			query.query.bool.must.should.be.a('array');
 		});
 
-		it('should build notEqual queries', function () {
+		it('should build notEqual queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -63,7 +59,7 @@ describe('builder', function () {
 			query.query.bool.must_not.should.be.a('array');
 		});
 
-		it('should build notEqual queries using ne syntax', function () {
+		it('should build notEqual queries using ne syntax', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -80,7 +76,7 @@ describe('builder', function () {
 			query.query.bool.must_not.should.be.a('array');
 		});
 
-		it('should build notEqual queries using notEqualTo syntax', function () {
+		it('should build notEqual queries using notEqualTo syntax', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -97,7 +93,7 @@ describe('builder', function () {
 			query.query.bool.must_not.should.be.a('array');
 		});
 
-		it('should build mandatory exact queries', function () {
+		it('should build mandatory exact queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -114,7 +110,7 @@ describe('builder', function () {
 			query.query.bool.must.should.be.a('array');
 		});
 
-		it('should build mandatory startsWith queries', function () {
+		it('should build mandatory startsWith queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -131,7 +127,7 @@ describe('builder', function () {
 			query.query.bool.must.should.be.a('array');
 		});
 
-		it('should build mandatory endsWith queries', function () {
+		it('should build mandatory endsWith queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -148,7 +144,7 @@ describe('builder', function () {
 			query.query.bool.must.should.be.a('array');
 		});
 
-		it('should build mandatory contains queries', function () {
+		it('should build mandatory contains queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -165,7 +161,7 @@ describe('builder', function () {
 			query.query.bool.must.should.be.a('array');
 		});
 
-		it('should build mandatory exists queries for fields', function () {
+		it('should build mandatory exists queries for fields', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -180,7 +176,7 @@ describe('builder', function () {
 			query.query.bool.must.should.be.a('array');
 		});
 
-		it('should build mandatory exists queries for many fields', function () {
+		it('should build mandatory exists queries for many fields', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -195,7 +191,7 @@ describe('builder', function () {
 			query.query.bool.must.should.be.a('array');
 		});
 
-		it('should build mandatory missing queries for fields', function () {
+		it('should build mandatory missing queries for fields', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -210,7 +206,7 @@ describe('builder', function () {
 			query.query.bool.must_not.should.be.a('array');
 		});
 
-		it('should build mandatory missing queries for fields', function () {
+		it('should build mandatory missing queries for fields', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -225,7 +221,7 @@ describe('builder', function () {
 			query.query.bool.must_not.should.be.a('array');
 		});
 
-		it('should build optional contains queries', function () {
+		it('should build optional contains queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -242,7 +238,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional exact queries', function () {
+		it('should build optional exact queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -259,7 +255,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional beginsWith queries for fields it is not expecting', function () {
+		it('should build optional beginsWith queries for fields it is not expecting', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -276,7 +272,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional endsWith queries for fields it is not expecting', function () {
+		it('should build optional endsWith queries for fields it is not expecting', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -293,7 +289,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional exact queries for fields it is not expecting', function () {
+		it('should build optional exact queries for fields it is not expecting', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -310,7 +306,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional contains queries for fields it is not expecting', function () {
+		it('should build optional contains queries for fields it is not expecting', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -327,7 +323,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional greaterThan queries', function () {
+		it('should build optional greaterThan queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -344,7 +340,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional greaterThanEqual queries', function () {
+		it('should build optional greaterThanEqual queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -361,7 +357,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional greaterThanEqual queries using gte syntax', function () {
+		it('should build optional greaterThanEqual queries using gte syntax', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -378,7 +374,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional lessThan queries', function () {
+		it('should build optional lessThan queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -395,7 +391,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional lessThanEqual queries', function () {
+		it('should build optional lessThanEqual queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -412,7 +408,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional lessThanEqual queries using lte syntax', function () {
+		it('should build optional lessThanEqual queries using lte syntax', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -429,7 +425,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional missing queries', function () {
+		it('should build optional missing queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -444,7 +440,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional missing queries for many fields', function () {
+		it('should build optional missing queries for many fields', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -459,7 +455,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional notEqual queries', function () {
+		it('should build optional notEqual queries', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -476,7 +472,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build asc sort parameters', function () {
+		it('should build asc sort parameters', () => {
 			var query = builder.buildQuery({
 				'sort' : {
 					'asc' : 'field'
@@ -490,7 +486,7 @@ describe('builder', function () {
 			query.sort[0].field.should.equal('asc');
 		});
 
-		it('should build asc sort with many parameters', function () {
+		it('should build asc sort with many parameters', () => {
 			var query = builder.buildQuery({
 				'sort' : {
 					'asc' : ['field', 'field1', 'field2']
@@ -506,7 +502,7 @@ describe('builder', function () {
 			query.sort[2].field2.should.equal('asc');
 		});
 
-		it('should build sort as array syntax, both asc and desc', function () {
+		it('should build sort as array syntax, both asc and desc', () => {
 			var query = builder.buildQuery({
 				'sort' : ['field', '-field1', 'field2']
 			});
@@ -520,7 +516,7 @@ describe('builder', function () {
 			query.sort[2].field2.should.equal('asc');
 		});
 
-		it('should build sort as string syntax, both asc and desc', function () {
+		it('should build sort as string syntax, both asc and desc', () => {
 			var query = builder.buildQuery({
 				'sort' : 'field, -field1, field2'
 			});
@@ -534,7 +530,7 @@ describe('builder', function () {
 			query.sort[2].field2.should.equal('asc');
 		});
 
-		it('should build sort with object syntax, both asc and desc', function () {
+		it('should build sort with object syntax, both asc and desc', () => {
 			var query = builder.buildQuery({
 				'sort' : {
 					'field' : 1,
@@ -552,7 +548,7 @@ describe('builder', function () {
 			query.sort[2].field2.should.equal('asc');
 		});
 
-		it('should build sort with object syntax, using asc and desc', function () {
+		it('should build sort with object syntax, using asc and desc', () => {
 			var query = builder.buildQuery({
 				'sort' : {
 					'field' : 'asc',
@@ -570,7 +566,7 @@ describe('builder', function () {
 			query.sort[2].field2.should.equal('asc');
 		});
 
-		it('should build desc sort parameters', function () {
+		it('should build desc sort parameters', () => {
 			var query = builder.buildQuery({
 				'sort' : {
 					'desc' : 'field'
@@ -584,7 +580,7 @@ describe('builder', function () {
 			query.sort[0].field.should.equal('desc');
 		});
 
-		it('should build desc sort with many parameters', function () {
+		it('should build desc sort with many parameters', () => {
 			var query = builder.buildQuery({
 				'sort' : {
 					'desc' : ['field', 'field1', 'field2']
@@ -600,10 +596,10 @@ describe('builder', function () {
 			query.sort[2].field2.should.equal('desc');
 		});
 
-		it('should build pagination parameters', function () {
+		it('should build pagination parameters', () => {
 			var query = builder.buildQuery({
-				'start' : 10,
-				'count' : 10
+				'count' : 10,
+				'start' : 10
 			});
 
 			should.exist(query.query);
@@ -611,7 +607,7 @@ describe('builder', function () {
 			should.exist(query.size);
 		});
 
-		it('should build query with many exact criteria', function () {
+		it('should build query with many exact criteria', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'mandatory' : {
@@ -628,7 +624,7 @@ describe('builder', function () {
 			query.query.bool.must.should.be.a('array');
 		});
 
-		it('should build optional exact query with many criteria', function () {
+		it('should build optional exact query with many criteria', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -645,7 +641,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build optional exact query with many criteria input as a string', function () {
+		it('should build optional exact query with many criteria input as a string', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'optional' : {
@@ -662,7 +658,7 @@ describe('builder', function () {
 			query.query.bool.should.should.be.a('array');
 		});
 
-		it('should build query for limiting returned fields', function () {
+		it('should build query for limiting returned fields', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'field' : 'one,two,three'
@@ -674,7 +670,7 @@ describe('builder', function () {
 			query['_source'].should.be.a('array');
 		});
 
-		it('should build query for limiting returned fields when passed in as an array', function () {
+		it('should build query for limiting returned fields when passed in as an array', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'field' : ['one', 'two', 'three']
@@ -686,7 +682,7 @@ describe('builder', function () {
 			query['_source'].should.be.a('array');
 		});
 
-		it('should build query for limiting returned fields when only one is passed in', function () {
+		it('should build query for limiting returned fields when only one is passed in', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'field' : 'three'
@@ -698,7 +694,7 @@ describe('builder', function () {
 			query['_source'].should.be.a('array');
 		});
 
-		it('should build query for diagnostics', function () {
+		it('should build query for diagnostics', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'diagnostics' : 'missingTestField',
@@ -711,7 +707,7 @@ describe('builder', function () {
 			should.exist(query);
 		});
 
-		it('should build query for many diagnostics', function () {
+		it('should build query for many diagnostics', () => {
 			var query = builder.buildQuery({
 				'filters' : {
 					'diagnostics' : 'missingTestField,test',

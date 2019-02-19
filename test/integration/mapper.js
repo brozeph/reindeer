@@ -1,48 +1,45 @@
-/*eslint no-magic-numbers:0*/
-/*eslint no-unused-expressions:0*/
-var
-	chai = require('chai'),
-	should = chai.should(),
-	uuid = require('uuid'),
+/* eslint no-magic-numbers : 0 */
+/* eslint no-unused-expressions : 0 */
+import chai from 'chai';
+import { Mapper } from '../../src/mapper.js';
+import { v4 as uuid } from 'uuid';
 
-	Mapper = require('../../lib/mapper.js'),
-	catsMapping = require('../cats-mapping.json');
+const
+	catsMapping = require('../cats-mapping.json'),
+	should = chai.should();
 
-
-describe('mapper', function () {
-	'use strict';
-
-	var
+describe('mapper', () => {
+	let
+		blue = {
+			animalId : uuid().replace(/\-/g, ''),
+			breed : 'Domestic Shorthair',
+			name : 'Blue'
+		},
 		catsMapper = new Mapper({
 				_index : 'test-index',
 				_type : 'test-type'
 			},
 			catsMapping),
-		blue = {
-			animalId : uuid.v4().replace(/\-/g, ''),
-			breed : 'Domestic Shorthair',
-			name : 'Blue'
-		},
 		cooper = {
-			animalId : uuid.v4().replace(/\-/g, ''),
+			animalId : uuid().replace(/\-/g, ''),
 			breed : 'Domestic Shorthair',
 			name : 'Cooper'
 		},
 		dugald = {
-			breed : 'Siamese',
-			name : 'Dugald',
 			attributes : {
 				height: 8.7,
 				weight : 21.2
-			}
+			},
+			breed : 'Siamese',
+			name : 'Dugald'
 		},
 		hamish = {
-			animalId : uuid.v4().replace(/\-/g, ''),
+			animalId : uuid().replace(/\-/g, ''),
 			breed : 'Manx',
 			name : 'Hamish'
 		},
 		keelin = {
-			animalId : uuid.v4().replace(/\-/g, ''),
+			animalId : uuid().replace(/\-/g, ''),
 			breed : 'Unknown - longhair',
 			name : 'Keelin',
 			randomField : 'random data',
@@ -51,23 +48,26 @@ describe('mapper', function () {
 			}
 		};
 
-	after(function (done) {
+	after((done) => {
 		return catsMapper._client.indices.deleteIndex(done);
 	});
 
-	describe('#bulkCreate', function () {
-		it('should properly create in bulk', function (done) {
-			var
+	describe('#bulkCreate', () => {
+		it('should properly create in bulk', (done) => {
+			let
 				docList = [blue, cooper, hamish, keelin],
 				esIdList,
-				idList = docList.map(function (cat) {
+				idList = docList.map((cat) => {
 					return cat.animalId;
 				});
 
 			catsMapper.on('identity', (ids) => (esIdList = ids));
 
-			catsMapper.bulkCreate(idList, docList, function (err, result) {
-				should.not.exist(err);
+			catsMapper.bulkCreate(idList, docList, (err, result) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.exist(result);
 				should.not.exist(esIdList);
 				result.should.have.length(4);
@@ -76,8 +76,11 @@ describe('mapper', function () {
 				should.exist(result[2]);
 				should.exist(result[3]);
 
-				catsMapper.get(keelin.animalId, function (err, catModel) {
-					should.not.exist(err);
+				catsMapper.get(keelin.animalId, (err, catModel) => {
+					if (err) {
+						return done(err);
+					}
+
 					should.exist(catModel);
 					should.exist(catModel.name);
 					catModel.name.should.equal('Keelin');
@@ -87,10 +90,10 @@ describe('mapper', function () {
 			});
 		});
 
-		it('should properly error when bulk creating documents that already exist', function (done) {
-			var
+		it('should properly error when bulk creating documents that already exist', (done) => {
+			let
 				docList = [hamish, keelin],
-				idList = docList.map(function (cat) {
+				idList = docList.map((cat) => {
 					return cat.animalId;
 				});
 
@@ -109,8 +112,8 @@ describe('mapper', function () {
 				});
 		});
 
-		it('should properly create in bulk without ids', function (done) {
-			var
+		it('should properly create in bulk without ids', (done) => {
+			let
 				docList = [
 					JSON.parse(JSON.stringify(hamish)),
 					JSON.parse(JSON.stringify(keelin)),
@@ -137,9 +140,9 @@ describe('mapper', function () {
 		});
 	});
 
-	describe('#bulkGet', function () {
-		it('should properly get in bulk', function (done) {
-			var idList = [hamish, keelin].map(function (cat) {
+	describe('#bulkGet', () => {
+		it('should properly get in bulk', (done) => {
+			let idList = [hamish, keelin].map((cat) => {
 				return cat.animalId;
 			});
 
@@ -154,13 +157,16 @@ describe('mapper', function () {
 				.catch(done);
 		});
 
-		it('should properly get in bulk with _source parameter', function (done) {
-			var idList = [hamish, keelin].map(function (cat) {
+		it('should properly get in bulk with _source parameter', (done) => {
+			let idList = [hamish, keelin].map((cat) => {
 				return cat.animalId;
 			});
 
-			catsMapper.bulkGet(idList, ['name'], function (err, catModels) {
-				should.not.exist(err);
+			catsMapper.bulkGet(idList, ['name'], (err, catModels) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.exist(catModels);
 				catModels.should.have.length(2);
 				Object.keys(catModels[0]).should.have.length(1);
@@ -170,9 +176,12 @@ describe('mapper', function () {
 			});
 		});
 
-		it('should properly return empty array when no results are found', function (done) {
-			catsMapper.bulkGet(['not-valid-id-1', 'not-valid-id-2'], function (err, catModels) {
-				should.not.exist(err);
+		it('should properly return empty array when no results are found', (done) => {
+			catsMapper.bulkGet(['not-valid-id-1', 'not-valid-id-2'], (err, catModels) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.exist(catModels);
 				catModels.should.have.length(0);
 
@@ -181,14 +190,14 @@ describe('mapper', function () {
 		});
 	});
 
-	describe('#bulkUpdate', function () {
-		it('should not update documents that do not exist, in bulk', function (done) {
-			var
+	describe('#bulkUpdate', () => {
+		it('should not update documents that do not exist, in bulk', (done) => {
+			let
 				docList = [
 					JSON.parse(JSON.stringify(hamish)),
 					JSON.parse(JSON.stringify(keelin))
 				],
-				idList = docList.map(function (cat, i) {
+				idList = docList.map((cat, i) => {
 					return ['not-valid-id', i].join('-');
 				});
 
@@ -202,7 +211,7 @@ describe('mapper', function () {
 				weight : 14.7
 			};
 
-			catsMapper.bulkUpdate(idList, docList, function (err, result) {
+			catsMapper.bulkUpdate(idList, docList, (err, result) => {
 				should.exist(err);
 				should.not.exist(result);
 				should.exist(err.statusCode);
@@ -212,13 +221,13 @@ describe('mapper', function () {
 			});
 		});
 
-		it('should update documents in bulk', function (done) {
-			var
+		it('should update documents in bulk', (done) => {
+			let
 				docList = [
 					JSON.parse(JSON.stringify(hamish)),
 					JSON.parse(JSON.stringify(keelin))
 				],
-				idList = docList.map(function (cat) {
+				idList = docList.map((cat) => {
 					return cat.animalId;
 				});
 
@@ -232,16 +241,22 @@ describe('mapper', function () {
 				weight : 14.7
 			};
 
-			catsMapper.bulkUpdate(idList, docList, function (err, result) {
-				should.not.exist(err);
+			catsMapper.bulkUpdate(idList, docList, (err, result) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.exist(result);
 
 				result.should.have.length(2);
 				should.exist(result[0]);
 				should.exist(result[1]);
 
-				catsMapper.get(keelin.animalId, function (err, catModel) {
-					should.not.exist(err);
+				catsMapper.get(keelin.animalId, (err, catModel) => {
+					if (err) {
+						return done(err);
+					}
+
 					should.exist(catModel);
 					should.exist(catModel.name);
 					should.exist(catModel.attributes);
@@ -255,14 +270,14 @@ describe('mapper', function () {
 		});
 	});
 
-	describe('#bulkUpsert', function () {
-		it('should upsert documents in bulk', function (done) {
-			var
+	describe('#bulkUpsert', () => {
+		it('should upsert documents in bulk', (done) => {
+			let
 				docList = [
 					JSON.parse(JSON.stringify(hamish)),
 					JSON.parse(JSON.stringify(keelin))
 				],
-				idList = docList.map(function (cat) {
+				idList = docList.map((cat) => {
 					return cat.name;
 				});
 
@@ -274,8 +289,11 @@ describe('mapper', function () {
 					should.exist(result[0]);
 					should.exist(result[1]);
 
-					catsMapper.get(keelin.name, function (err, catModel) {
-						should.not.exist(err);
+					catsMapper.get(keelin.name, (err, catModel) => {
+						if (err) {
+							return done(err);
+						}
+
 						should.exist(catModel);
 						should.exist(catModel.name);
 
@@ -286,9 +304,9 @@ describe('mapper', function () {
 		});
 	});
 
-	describe('#search', function () {
-		it('should properly search', function (done) {
-			var
+	describe('#search', () => {
+		it('should properly search', (done) => {
+			let
 				query = {
 					from : 0,
 					query : {
@@ -300,8 +318,11 @@ describe('mapper', function () {
 
 			catsMapper.on('summary', (searchSummary) => (summary = searchSummary));
 
-			catsMapper.search(query, function (err, catModels) {
-				should.not.exist(err);
+			catsMapper.search(query, (err, catModels) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.exist(catModels);
 				should.exist(summary);
 				should.exist(summary.total);
@@ -312,17 +333,22 @@ describe('mapper', function () {
 		});
 	});
 
-	describe('#bulkDelete', function () {
-		it('should properly delete in bulk', function (done) {
-			catsMapper.bulkDelete([hamish.animalId, keelin.animalId], function (err) {
-				should.not.exist(err);
+	describe('#bulkDelete', () => {
+		it('should properly delete in bulk', (done) => {
+			catsMapper.bulkDelete([hamish.animalId, keelin.animalId], (err) => {
+				if (err) {
+					return done(err);
+				}
 
 				catsMapper.get(hamish.animalId)
 					.then((retrievedDoc) => {
 						should.not.exist(retrievedDoc);
 
-						catsMapper.get(blue.animalId, function (err, retrievedDoc) {
-							should.not.exist(err);
+						catsMapper.get(blue.animalId, (err, retrievedDoc) => {
+							if (err) {
+								return done(err);
+							}
+
 							should.exist(retrievedDoc);
 
 							return done();
@@ -333,14 +359,17 @@ describe('mapper', function () {
 		});
 	});
 
-	describe('#create', function () {
-		it('should properly create', function (done) {
-			var _id;
+	describe('#create', () => {
+		it('should properly create', (done) => {
+			let _id;
 
 			catsMapper.on('identity', (id) => (_id = id));
 
-			catsMapper.create(hamish.animalId, hamish, function (err, insertedDoc) {
-				should.not.exist(err);
+			catsMapper.create(hamish.animalId, hamish, (err, insertedDoc) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.exist(insertedDoc);
 				should.not.exist(_id);
 
@@ -352,8 +381,8 @@ describe('mapper', function () {
 			});
 		});
 
-		it('should properly create without _id', function (done) {
-			var _id;
+		it('should properly create without _id', (done) => {
+			let _id;
 
 			catsMapper.on('identity', (id) => (_id = id));
 
@@ -374,9 +403,12 @@ describe('mapper', function () {
 				.catch(done);
 		});
 
-		it('should properly create and obey dynamic=false mapping', function (done) {
-			catsMapper.create(keelin.animalId, keelin, function (err, insertedDoc) {
-				should.not.exist(err);
+		it('should properly create and obey dynamic=false mapping', (done) => {
+			catsMapper.create(keelin.animalId, keelin, (err, insertedDoc) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.exist(insertedDoc);
 
 				insertedDoc.animalId.should.equal(keelin.animalId);
@@ -389,8 +421,8 @@ describe('mapper', function () {
 			});
 		});
 
-		it('should properly require fields', function (done) {
-			catsMapper.create({ breed : 'domestic shorthair' }, function (err, insertedDoc, animalId) {
+		it('should properly require fields', (done) => {
+			catsMapper.create({ breed : 'domestic shorthair' }, (err, insertedDoc, animalId) => {
 				should.exist(err);
 				should.not.exist(insertedDoc);
 				should.not.exist(animalId);
@@ -399,8 +431,8 @@ describe('mapper', function () {
 			});
 		});
 
-		it('should return error if document already exists', function (done) {
-			catsMapper.create(hamish.animalId, hamish, function (err, insertedDoc) {
+		it('should return error if document already exists', (done) => {
+			catsMapper.create(hamish.animalId, hamish, (err, insertedDoc) => {
 				should.exist(err);
 				should.not.exist(insertedDoc);
 
@@ -409,12 +441,15 @@ describe('mapper', function () {
 		});
 	});
 
-	describe('#delete', function () {
-		it('should properly delete a newly created doc', function (done) {
+	describe('#delete', () => {
+		it('should properly delete a newly created doc', (done) => {
 			catsMapper.delete(dugald.animalId)
 				.then(() => {
-					catsMapper.get(dugald.animalId, function (err, retrievedDoc) {
-						should.not.exist(err);
+					catsMapper.get(dugald.animalId, (err, retrievedDoc) => {
+						if (err) {
+							return done(err);
+						}
+
 						should.not.exist(retrievedDoc);
 
 						return done();
@@ -425,43 +460,15 @@ describe('mapper', function () {
 
 		/* Elasticsearch has removed deleteByQuery functionality in the core and moved capability to a plugin */
 		/* https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-delete-by-query.html */
-
-		/*
-		it('should properly delete by query', function (done) {
-			var options = {
-				query : {
-					match : {
-						breed : blue.breed
-					}
-				}
-			};
-
-			// give it time for the documents to propegate across shards
-			setTimeout(function () {
-				catsMapper.search(options, function (err, foundCats) {
-					should.not.exist(err);
-					should.exist(foundCats);
-
-					catsMapper.delete(options, function (err, summary) {
-						should.not.exist(err);
-						should.exist(summary);
-
-						catsMapper.get(blue.animalId, function (err, retrievedDoc) {
-							should.not.exist(err);
-							should.not.exist(retrievedDoc);
-
-							return done();
-						});
-					});
-				});
-			}, 1000);
-		});*/
 	});
 
-	describe('#get', function () {
-		it('should properly retrieve', function (done) {
-			catsMapper.get(hamish.animalId, function (err, retrievedDoc) {
-				should.not.exist(err);
+	describe('#get', () => {
+		it('should properly retrieve', (done) => {
+			catsMapper.get(hamish.animalId, (err, retrievedDoc) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.exist(retrievedDoc);
 
 				retrievedDoc.animalId.should.equal(hamish.animalId);
@@ -472,16 +479,19 @@ describe('mapper', function () {
 			});
 		});
 
-		it('should properly return nothing when not found', function (done) {
-			catsMapper.get('doc-not-exists', function (err, retrievedDoc) {
-				should.not.exist(err);
+		it('should properly return nothing when not found', (done) => {
+			catsMapper.get('doc-not-exists', (err, retrievedDoc) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.not.exist(retrievedDoc);
 
 				return done();
 			});
 		});
 
-		it('should properly handle _source parameter', function (done) {
+		it('should properly handle _source parameter', (done) => {
 			catsMapper.update(
 				keelin.animalId,
 				{
@@ -491,13 +501,19 @@ describe('mapper', function () {
 					}
 				},
 				function (err) {
-					should.not.exist(err);
+					if (err) {
+						return done(err);
+					}
+
 
 					catsMapper.get(
 						keelin.animalId,
 						['animalId', 'breed', 'name'],
 						function (err, partialDoc) {
-							should.not.exist(err);
+							if (err) {
+								return done(err);
+							}
+
 							should.exist(partialDoc);
 							Object.keys(partialDoc).should.have.length(3);
 
@@ -507,11 +523,14 @@ describe('mapper', function () {
 		});
 	});
 
-	describe('#update', function () {
-		it('should properly update a doc', function (done) {
+	describe('#update', () => {
+		it('should properly update a doc', (done) => {
 			keelin.breed = 'Russian Blue';
-			catsMapper.update(keelin.animalId, keelin, function (err, updatedDoc) {
-				should.not.exist(err);
+			catsMapper.update(keelin.animalId, keelin, (err, updatedDoc) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.exist(updatedDoc);
 
 				updatedDoc.animalId.should.equal(keelin.animalId);
@@ -522,7 +541,7 @@ describe('mapper', function () {
 			});
 		});
 
-		it('should return an error when attempting to update a non-existent doc', function (done) {
+		it('should return an error when attempting to update a non-existent doc', (done) => {
 			dugald.name = 'Dugald the big cat';
 
 			catsMapper.update('no-matching-id', dugald)
@@ -535,9 +554,9 @@ describe('mapper', function () {
 		});
 	});
 
-	describe('#upsert', function () {
-		it('should properly error when Id is not supplied and the document does not exist', function (done) {
-			catsMapper.upsert(dugald, function (err, upsertedDoc) {
+	describe('#upsert', () => {
+		it('should properly error when Id is not supplied and the document does not exist', (done) => {
+			catsMapper.upsert(dugald, (err, upsertedDoc) => {
 				should.exist(err);
 				should.not.exist(upsertedDoc);
 
@@ -545,8 +564,8 @@ describe('mapper', function () {
 			});
 		});
 
-		it('should properly create if the document does not exist', function (done) {
-			dugald.animalId = uuid.v4().replace(/\-/g, '');
+		it('should properly create if the document does not exist', (done) => {
+			dugald.animalId = uuid().replace(/\-/g, '');
 
 			catsMapper.upsert(dugald.animalId, dugald)
 				.then((upsertedDoc) => {
@@ -557,11 +576,14 @@ describe('mapper', function () {
 				.catch(done);
 		});
 
-		it('should properly create if the document contains fields not contained in mapping', function (done) {
-			keelin.animalId = uuid.v4().replace(/\-/g, '');
+		it('should properly create if the document contains fields not contained in mapping', (done) => {
+			keelin.animalId = uuid().replace(/\-/g, '');
 
-			catsMapper.upsert(keelin.animalId, keelin, function (err, upsertedDoc) {
-				should.not.exist(err);
+			catsMapper.upsert(keelin.animalId, keelin, (err, upsertedDoc) => {
+				if (err) {
+					return done(err);
+				}
+
 				should.exist(upsertedDoc);
 				should.not.exist(upsertedDoc.randomField);
 				should.not.exist(upsertedDoc.randomNestedField.randomData);
