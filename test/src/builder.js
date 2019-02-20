@@ -1,13 +1,12 @@
 /* eslint no-magic-numbers : 0 */
 /* eslint no-unused-expressions : 0 */
-var
-	builder,
-	chai = require('chai'),
-	QueryBuilder = require('../../src/builder.js'),
-	should = chai.should();
+import chai from 'chai';
+import { QueryBuilder } from '../../src/builder.js';
+
+const should = chai.should();
 
 describe('builder', () => {
-	'use strict';
+	let builder;
 
 	beforeEach(() => {
 		builder = new QueryBuilder(

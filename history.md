@@ -1,3 +1,7 @@
+# v3.0.1 - 02.19.2019
+
+* Adjusted module loader for simplicity
+
 # v3.0.0 - 02.19.2019
 
 * Moved to ESNext with Babel transpile
