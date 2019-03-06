@@ -2,7 +2,7 @@
   "name": "reindeer",
   "description": "Provides schema enforcement based on Elasticsearch type mappings",
   "main": "./dist",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "author": "Joshua Thomas (https://github.com/brozeph)",
   "contributors": [
     "Robin Momii (https://github.com/rmomii)"
@@ -70,6 +70,6 @@
   },
   "dependencies": {
     "@babel/runtime-corejs2": "^7.3.1",
-    "es": "^0.6.0"
+    "es": "^0.7.1"
   }
 }

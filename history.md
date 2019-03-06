@@ -1,3 +1,7 @@
+# v3.1.0 - 03.05.2019
+
+* Updated `es` dependency for Elasticsearch 6.x support
+
 # v3.0.1 - 02.19.2019
 
 * Adjusted module loader for simplicity
