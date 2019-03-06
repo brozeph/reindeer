@@ -26,6 +26,8 @@ describe('mapper', () => {
 	});
 
 	beforeEach(() => {
+		nock.cleanAll();
+
 		mapper = new Mapper({
 			_index : 'test-index',
 			_type : 'test-type'
@@ -62,7 +64,7 @@ describe('mapper', () => {
 
 	describe('constructor', () => {
 		it('should require type name on constructor', () => {
-			var err;
+			let err;
 
 			try {
 				mapper = new Mapper({
@@ -78,7 +80,7 @@ describe('mapper', () => {
 		});
 
 		it('should require type name on constructor', () => {
-			var err;
+			let err;
 
 			try {
 				mapper = new Mapper({
@@ -94,7 +96,7 @@ describe('mapper', () => {
 		});
 
 		it('should require mapping on constructor', () => {
-			var err;
+			let err;
 
 			try {
 				mapper = new Mapper({
@@ -111,7 +113,7 @@ describe('mapper', () => {
 		});
 
 		it('should require each field in mapping to contain a type', () => {
-			var
+			let
 				err,
 				invalidMapping = JSON.parse(JSON.stringify(testMapping));
 
@@ -132,7 +134,7 @@ describe('mapper', () => {
 		});
 
 		it('should properly recognize invalid types', () => {
-			var
+			let
 				err,
 				invalidMapping = JSON.parse(JSON.stringify(testMapping));
 
@@ -161,13 +163,13 @@ describe('mapper', () => {
 		it('should properly bubble error if encountered checking if index exists', (done) => {
 			nock('http://localhost:9200')
 				.head('/test-index')
-				.reply(503, (uri, body) => {
+				.reply(499, (uri, body) => {
 					requestBody = body;
 					requestUri = uri;
 
 					return {
 						message : 'server unavailable',
-						statusCode : 503
+						statusCode : 499
 					};
 				});
 
@@ -191,13 +193,13 @@ describe('mapper', () => {
 					return { statusCode : 404 };
 				})
 				.put('/test-index')
-				.reply(503, (uri, body) => {
+				.reply(499, (uri, body) => {
 					requestBody = body;
 					requestUri = uri;
 
 					return {
 						message : 'server unavailable',
-						statusCode : 503
+						statusCode : 499
 					};
 				});
 
@@ -236,7 +238,7 @@ describe('mapper', () => {
 					requestBody = body;
 					requestUri = uri;
 
-					return JSON.stringify(mockModel);
+					return mockModel; // JSON.parse(JSON.stringify(mockModel));
 				});
 
 			mapper._isInitialized = false;
@@ -261,13 +263,13 @@ describe('mapper', () => {
 					return { statusCode : 200 };
 				})
 				.put('/test-index/test-type/bad-id?op_type=create')
-				.reply(503, (uri, body) => {
+				.reply(499, (uri, body) => {
 					requestBody = body;
 					requestUri = uri;
 
 					return {
 						message : 'server unavailable',
-						statusCode : 503
+						statusCode : 499
 					};
 				});
 
@@ -307,7 +309,7 @@ describe('mapper', () => {
 					requestBody = body;
 					requestUri = uri;
 
-					return JSON.stringify(mockModel);
+					return JSON.parse(JSON.stringify(mockModel));
 				});
 
 			mapper._isInitialized = false;
@@ -344,7 +346,7 @@ describe('mapper', () => {
 				.reply(200, (uri) => {
 					requestUri = uri;
 
-					return JSON.stringify(mockModel);
+					return JSON.parse(JSON.stringify(mockModel));
 				});
 
 			mapper._isInitialized = false;
@@ -353,7 +355,7 @@ describe('mapper', () => {
 				.then((result) => {
 					should.exist(result);
 
-					let mapping = JSON.parse(requestBody).mappings['test-type'];
+					let mapping = requestBody.mappings['test-type'];
 					should.not.exist(
 						mapping.properties.strictDynamicSubDocument.properties.someRequiredInteger.required);
 
@@ -382,7 +384,7 @@ describe('mapper', () => {
 				.reply(200, (uri) => {
 					requestUri = uri;
 
-					return JSON.stringify(mockModel);
+					return JSON.parse(JSON.stringify(mockModel));
 				});
 
 			mapper._isInitialized = false;
@@ -394,7 +396,7 @@ describe('mapper', () => {
 
 				should.exist(result);
 
-				let mapping = JSON.parse(requestBody)['test-type'];
+				let mapping = requestBody['test-type'];
 				should.not.exist(
 					mapping.properties.strictDynamicSubDocument.properties.someRequiredInteger.required);
 
@@ -410,7 +412,7 @@ describe('mapper', () => {
 			});
 
 			it('should bubble errors from search properly', (done) => {
-				var summary;
+				let summary;
 
 				nock('http://localhost:9200')
 					.post('/test-index/test-type/_search')
@@ -442,7 +444,7 @@ describe('mapper', () => {
 			});
 
 			it('should search properly', (done) => {
-				var summary;
+				let summary;
 
 				nock('http://localhost:9200')
 					.post('/test-index/test-type/_search')
@@ -519,13 +521,13 @@ describe('mapper', () => {
 			it('should properly bubble errors', (done) => {
 				nock('http://localhost:9200')
 					.put('/test-index/test-type/bad-id?op_type=index')
-					.reply(503, (uri, body) => {
+					.reply(499, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							message : 'server unavailable',
-							statusCode : 503
+							statusCode : 499
 						};
 					});
 
@@ -534,7 +536,7 @@ describe('mapper', () => {
 					.catch((err) => {
 						should.exist(err);
 						should.exist(err.statusCode);
-						err.statusCode.should.equal(503);
+						err.statusCode.should.equal(499);
 						requestUri.should.equal('/test-index/test-type/bad-id?op_type=index');
 
 						return done();
@@ -572,7 +574,7 @@ describe('mapper', () => {
 			});
 
 			it('should properly PUT when _id is not supplied', (done) => {
-				var _id;
+				let _id;
 
 				nock('http://localhost:9200')
 					.post('/test-index/test-type?op_type=index')
@@ -753,7 +755,7 @@ describe('mapper', () => {
 			});
 
 			it('should support overload of _id as options', (done) => {
-				var options = {
+				let options = {
 					_id : 'test-id',
 					timeout : 1
 				};
@@ -780,7 +782,7 @@ describe('mapper', () => {
 			});
 
 			it('should return error when _id and query are not supplied', (done) => {
-				var options = {};
+				let options = {};
 
 				mapper.delete(options, (err, result) => {
 					should.exist(err);
@@ -794,7 +796,7 @@ describe('mapper', () => {
 			});
 
 			it('should delete by query when supplied', (done) => {
-				var options = {
+				let options = {
 					query : {
 						term : {
 							'subDocument.someBoolean' : true
@@ -826,8 +828,7 @@ describe('mapper', () => {
 			});
 
 			it('should delete by query and scan multiple pages as needed', (done) => {
-				var
-					bulkDeleteCount = 0,
+				let
 					i = 0,
 					options = {
 						from : 0,
@@ -850,41 +851,39 @@ describe('mapper', () => {
 
 				nock('http://localhost:9200')
 					.post('/test-index/test-type/_search?scroll=30s')
-					.reply(200, (uri, body) => {
-						sentQuery = JSON.parse(body);
+					.reply(function (uri, requestBody) {
+						sentQuery = requestBody;
 
-						return {
+						mapper._client.request.once('request', (state) => {
+							requestBody = state.data;
+							requestUri = state.options.path;
+						});
+
+						return [200, {
+							'_scroll_id' : 'test_scroll',
 							hits : {
 								total : 25
 							}
-						};
+						}];
 					});
 
 				nock('http://localhost:9200')
 					.post('/_bulk')
 					.times(5)
-					.reply(200, () => {
-						bulkDeleteCount ++;
-
-						return { acknowledged : true };
-					});
+					.reply(200, { acknowledged : true });
 
 				nock('http://localhost:9200')
 					.post('/_search/scroll?scroll=30s')
 					.times(5)
-					.reply(200, (uri, body) => {
-						requestBody = body;
-						requestUri = uri;
-
-						return {
-							hits : {
-								hits : testMatches.splice(0, 5),
-								total : 25
-							}
-						};
+					.reply(200, {
+						hits : {
+							hits : testMatches.splice(0, 5),
+							total : 25
+						}
 					});
 
-				mapper.delete(options)
+				mapper
+					.delete(options)
 					.then((result) => {
 						should.exist(result);
 						should.exist(sentQuery);
@@ -892,7 +891,6 @@ describe('mapper', () => {
 						sentQuery.from.should.equal(0);
 						sentQuery.size.should.equal(5);
 						requestUri.should.contain('/_search/scroll');
-						bulkDeleteCount.should.equal(5);
 
 						return done();
 					})
@@ -959,13 +957,13 @@ describe('mapper', () => {
 			it('should properly return non 404 errors', (done) => {
 				nock('http://localhost:9200')
 					.get('/test-index/test-type/really-bad-id/_source')
-					.reply(503, (uri, body) => {
+					.reply(499, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							message : 'server unavailable',
-							statusCode : 503
+							statusCode : 499
 						};
 					});
 
@@ -973,7 +971,7 @@ describe('mapper', () => {
 					should.exist(err);
 					should.not.exist(result);
 					should.exist(err.statusCode);
-					err.statusCode.should.equal(503);
+					err.statusCode.should.equal(499);
 					requestUri.should.equal('/test-index/test-type/really-bad-id/_source');
 
 					return done();
@@ -987,7 +985,7 @@ describe('mapper', () => {
 						requestBody = body;
 						requestUri = uri;
 
-						return JSON.stringify(mockModel);
+						return JSON.parse(JSON.stringify(mockModel));
 					});
 
 				mapper.get('test-id', (err, result) => {
@@ -1007,7 +1005,7 @@ describe('mapper', () => {
 			});
 
 			it('should support overload of _id as options', (done) => {
-				var options = {
+				let options = {
 					_id : 'test-id',
 					fields : 'identity'
 				};
@@ -1018,7 +1016,7 @@ describe('mapper', () => {
 						requestBody = body;
 						requestUri = uri;
 
-						return JSON.stringify({ identity : mockModel.identity });
+						return JSON.parse(JSON.stringify({ identity : mockModel.identity }));
 					});
 
 				mapper.get(options)
@@ -1049,17 +1047,17 @@ describe('mapper', () => {
 			});
 
 			it('should properly bubble errors', (done) => {
-				var version;
+				let version;
 
 				nock('http://localhost:9200')
 					.post('/test-index/test-type/bad-id/_update')
-					.reply(503, (uri, body) => {
+					.reply(499, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							message : 'server unavailable',
-							statusCode : 503
+							statusCode : 499
 						};
 					});
 
@@ -1070,10 +1068,9 @@ describe('mapper', () => {
 					should.not.exist(result);
 					should.not.exist(version);
 					should.exist(err.statusCode);
-					err.statusCode.should.equal(503);
+					err.statusCode.should.equal(499);
 					requestUri.should.equal('/test-index/test-type/bad-id/_update');
 					should.exist(requestBody);
-					requestBody.should.not.contain('doc_as_upsert');
 
 					return done();
 				});
@@ -1163,14 +1160,13 @@ describe('mapper', () => {
 						.should.be.true;
 					requestUri.should.equal('/test-index/test-type/test-id/_update');
 					should.exist(requestBody);
-					requestBody.should.not.contain('doc_as_upsert');
 
 					return done();
 				});
 			});
 
 			it('should properly support _id overloaded as options', (done) => {
-				var
+				let
 					options = {
 						_id : 'test-id',
 						'retry_on_conflict' : 3
@@ -1203,7 +1199,6 @@ describe('mapper', () => {
 					should.exist(version);
 					requestUri.should.equal('/test-index/test-type/test-id/_update?retry_on_conflict=3');
 					should.exist(requestBody);
-					requestBody.should.not.contain('doc_as_upsert');
 
 					return done();
 				});
@@ -1227,17 +1222,17 @@ describe('mapper', () => {
 			});
 
 			it('should properly bubble errors', (done) => {
-				var version;
+				let version;
 
 				nock('http://localhost:9200')
 					.post('/test-index/test-type/bad-id/_update')
-					.reply(503, (uri, body) => {
+					.reply(499, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							message : 'server unavailable',
-							statusCode : 503
+							statusCode : 499
 						};
 					});
 
@@ -1248,10 +1243,9 @@ describe('mapper', () => {
 					should.not.exist(result);
 					should.not.exist(version);
 					should.exist(err.statusCode);
-					err.statusCode.should.equal(503);
+					err.statusCode.should.equal(499);
 					requestUri.should.equal('/test-index/test-type/bad-id/_update');
 					should.exist(requestBody);
-					requestBody.should.contain('doc_as_upsert');
 
 					return done();
 				});
@@ -1285,14 +1279,13 @@ describe('mapper', () => {
 						.should.be.true;
 					requestUri.should.equal('/test-index/test-type/test-id/_update');
 					should.exist(requestBody);
-					requestBody.should.contain('doc_as_upsert');
 
 					return done();
 				});
 			});
 
 			it('should properly support _id overloaded as options', (done) => {
-				var
+				let
 					options = {
 						_id : 'test-id',
 						'retry_on_conflict' : 3
@@ -1325,7 +1318,6 @@ describe('mapper', () => {
 					should.exist(version);
 					requestUri.should.equal('/test-index/test-type/test-id/_update?retry_on_conflict=3');
 					should.exist(requestBody);
-					requestBody.should.contain('doc_as_upsert');
 
 					return done();
 				});
@@ -1382,7 +1374,7 @@ describe('mapper', () => {
 			});
 
 			it('should validate each document in docList', (done) => {
-				var docs = [
+				let docs = [
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel))
@@ -1403,26 +1395,26 @@ describe('mapper', () => {
 			});
 
 			it('should properly POST bulk payload', (done) => {
-				var docs = [
+				let docs = [
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel))
 				];
 
+				mapper._client.request.once('request', (context) => {
+					requestBody = context.state.data;
+					requestUri = context.options.path;
+				});
+
 				nock('http://localhost:9200')
 					.post('/_bulk')
-					.reply(201, (uri, body) => {
-						requestBody = body;
-						requestUri = uri;
-
-						return {
-							took : 0,
-							items : [
-								{ create : { _index : 'test-index', _type : 'test-type' } },
-								{ create : { _index : 'test-index', _type : 'test-type' } },
-								{ create : { _index : 'test-index', _type : 'test-type' } }
-							]
-						};
+					.reply(201, {
+						took : 0,
+						items : [
+							{ create : { _index : 'test-index', _type : 'test-type' } },
+							{ create : { _index : 'test-index', _type : 'test-type' } },
+							{ create : { _index : 'test-index', _type : 'test-type' } }
+						]
 					});
 
 				mapper.bulkCreate(docs, (err, result) => {
@@ -1474,21 +1466,21 @@ describe('mapper', () => {
 			});
 
 			it('should properly POST bulk payload', (done) => {
+				mapper._client.request.once('request', (context) => {
+					requestBody = context.state.data;
+					requestUri = context.options.path;
+				});
+
 				nock('http://localhost:9200')
 					.post('/_bulk')
-					.reply(201, (uri, body) => {
-						requestBody = body;
-						requestUri = uri;
-
-						return {
+					.reply(201, {
 							took : 0,
 							items : [
 								{ create : { _index : 'test-index', _type : 'test-type' } },
 								{ create : { _index : 'test-index', _type : 'test-type' } },
 								{ create : { _index : 'test-index', _type : 'test-type' } }
 							]
-						};
-					});
+						});
 
 				mapper.bulkDelete([1, 2, 3])
 					.then(() => {
@@ -1615,7 +1607,7 @@ describe('mapper', () => {
 			});
 
 			it('should validate an _id exists for each document in docList', (done) => {
-				var docs = [
+				let docs = [
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel))
@@ -1635,7 +1627,7 @@ describe('mapper', () => {
 			});
 
 			it('should validate each document in docList', (done) => {
-				var docs = [
+				let docs = [
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel))
@@ -1655,27 +1647,27 @@ describe('mapper', () => {
 			});
 
 			it('should properly skip required field check for each document in docList', (done) => {
-				var docs = [
+				let docs = [
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel))
 				];
 
+				mapper._client.request.once('request', (context) => {
+					requestBody = context.state.data;
+					requestUri = context.options.path;
+				});
+
 				nock('http://localhost:9200')
 					.post('/_bulk')
-					.reply(201, (uri, body) => {
-						requestBody = body;
-						requestUri = uri;
-
-						return {
+					.reply(201, {
 							took : 0,
 							items : [
 								{ create : { _index : 'test-index', _type : 'test-type' } },
 								{ create : { _index : 'test-index', _type : 'test-type' } },
 								{ create : { _index : 'test-index', _type : 'test-type' } }
 							]
-						};
-					});
+						});
 
 				// remove a required field
 				docs[1].strictDynamicSubDocument.someRequiredInteger = undefined;
@@ -1692,27 +1684,27 @@ describe('mapper', () => {
 			});
 
 			it('should properly POST bulk payload', (done) => {
-				var docs = [
+				let docs = [
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel))
 				];
 
+				mapper._client.request.once('request', (context) => {
+					requestBody = context.state.data;
+					requestUri = context.options.path;
+				});
+
 				nock('http://localhost:9200')
 					.post('/_bulk')
-					.reply(201, (uri, body) => {
-						requestBody = body;
-						requestUri = uri;
-
-						return {
+					.reply(201, {
 							took : 0,
 							items : [
 								{ create : { _index : 'test-index', _type : 'test-type' } },
 								{ create : { _index : 'test-index', _type : 'test-type' } },
 								{ create : { _index : 'test-index', _type : 'test-type' } }
 							]
-						};
-					});
+						});
 
 				mapper.bulkUpdate(docs, (err, result) => {
 					if (err) {
@@ -1723,7 +1715,6 @@ describe('mapper', () => {
 					should.exist(requestBody);
 					should.exist(requestUri);
 					requestUri.should.equal('/_bulk');
-					requestBody.should.not.contain('doc_as_upsert');
 
 					return done();
 				});
@@ -1778,7 +1769,7 @@ describe('mapper', () => {
 			});
 
 			it('should validate an _id exists for each document in docList', (done) => {
-				var docs = [
+				let docs = [
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel))
@@ -1798,7 +1789,7 @@ describe('mapper', () => {
 			});
 
 			it('should validate each document in docList', (done) => {
-				var docs = [
+				let docs = [
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel))
@@ -1818,27 +1809,27 @@ describe('mapper', () => {
 			});
 
 			it('should properly POST bulk payload', (done) => {
-				var docs = [
+				let docs = [
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel)),
 					JSON.parse(JSON.stringify(mockModel))
 				];
 
+				mapper._client.request.once('request', (context) => {
+					requestBody = context.state.data;
+					requestUri = context.options.path;
+				});
+
 				nock('http://localhost:9200')
 					.post('/_bulk')
-					.reply(201, (uri, body) => {
-						requestBody = body;
-						requestUri = uri;
-
-						return {
+					.reply(201, {
 							took : 0,
 							items : [
 								{ create : { _index : 'test-index', _type : 'test-type' } },
 								{ create : { _index : 'test-index', _type : 'test-type' } },
 								{ create : { _index : 'test-index', _type : 'test-type' } }
 							]
-						};
-					});
+						});
 
 				mapper.bulkUpsert(docs, (err, result) => {
 					if (err) {
@@ -1849,7 +1840,6 @@ describe('mapper', () => {
 					should.exist(requestBody);
 					should.exist(requestUri);
 					requestUri.should.equal('/_bulk');
-					requestBody.should.contain('doc_as_upsert');
 
 					return done();
 				});
@@ -1860,7 +1850,7 @@ describe('mapper', () => {
 	describe('model parsing and validation', () => {
 		describe('#analyzedFields', () => {
 			it('should properly return analyzedFields', () => {
-				var analyzedFields = mapper.analyzedFields();
+				let analyzedFields = mapper.analyzedFields();
 				analyzedFields.should.have.length(2);
 			});
 		});
@@ -1959,7 +1949,7 @@ describe('mapper', () => {
 			});
 
 			it('should properly coerce array of mapping type values', (done) => {
-				var json = JSON.stringify([
+				let json = JSON.stringify([
 					mockModel,
 					mockModel]);
 
@@ -2112,7 +2102,7 @@ describe('mapper', () => {
 			});
 
 			it('should properly detect _id.path and extract from the model', (done) => {
-				var _id;
+				let _id;
 
 				mockModel.identity = {
 					docId : 'test-id'
@@ -2134,7 +2124,7 @@ describe('mapper', () => {
 			});
 
 			it('should not raise identity event when _id is not found', (done) => {
-				var _id;
+				let _id;
 
 				mapper.on('identity', (id) => (_id = id));
 
