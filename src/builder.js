@@ -242,7 +242,7 @@ function buildFilters (queryBuilder, filterSet) {
 	return filters;
 }
 
-class QueryBuilder {
+export class QueryBuilder {
 	constructor (matchFields, diagnosticsFilterKey) {
 		this.matchFields = matchFields;
 		this.diagnosticsFilterKey = diagnosticsFilterKey;
@@ -467,4 +467,4 @@ class QueryBuilder {
 	}
 }
 
-module.exports = { QueryBuilder };
+export default QueryBuilder;

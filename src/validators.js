@@ -306,7 +306,7 @@ function string (field) {
 	};
 }
 
-module.exports = {
+export default {
 	attachment,
 	binary,
 	boolean,
@@ -321,8 +321,10 @@ module.exports = {
 	ip,
 	isPOJO,
 	isUndefined,
+	keyword : string,
 	long,
 	object,
 	short,
-	string
+	string,
+	text : string
 };
