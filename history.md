@@ -1,3 +1,7 @@
+# v3.1.1 - 03.11.2019
+
+* Adjusted support for `string` types to include `keyword` and `text` types
+
 # v3.1.0 - 03.05.2019
 
 * Updated `es` dependency for Elasticsearch 6.x support

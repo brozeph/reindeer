@@ -180,7 +180,9 @@ function coerceValue (fieldValue, type) {
 		'attachment',
 		'binary',
 		'ip',
-		'string'
+		'keyword',
+		'string',
+		'text'
 	].some((matchType) => type === matchType)) {
 		if (fieldValue && typeof fieldValue !== 'string') {
 			return fieldValue.toString();
@@ -755,7 +757,7 @@ function validateModel (self, model, parentPath, skipRequiredFieldCheck) {
 	return result;
 }
 
-class Mapper extends EventEmitter {
+export class Mapper extends EventEmitter {
 	constructor (options, mapping) {
 		super();
 
@@ -789,7 +791,7 @@ class Mapper extends EventEmitter {
 
 		Object.keys(_this._fields).forEach((fieldPath) => {
 			// strings are the only types that are analyzed
-			if (_this._fields[fieldPath].type !== 'string') {
+			if (['string', 'text'].indexOf(_this._fields[fieldPath].type) < 0) {
 				return;
 			}
 
@@ -1537,4 +1539,4 @@ class Mapper extends EventEmitter {
 	}
 }
 
-module.exports = { Mapper };
+export default Mapper;

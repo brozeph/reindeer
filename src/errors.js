@@ -36,7 +36,7 @@ class InvalidParameterError extends Error {
 	}
 }
 
-module.exports = {
+export default {
 	InvalidMappingError,
 	InvalidModelError,
 	InvalidParameterError
