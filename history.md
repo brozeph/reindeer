@@ -1,3 +1,7 @@
+# v3.1.2 - 03.11.2019
+
+* Fixed issue where default export on index
+
 # v3.1.1 - 03.11.2019
 
 * Adjusted support for `string` types to include `keyword` and `text` types
