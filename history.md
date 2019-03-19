@@ -1,3 +1,7 @@
+# v3.1.3 - 03.19.2019
+
+* Updated `es` dependency with tightened request body handling
+
 # v3.1.2 - 03.11.2019
 
 * Fixed issue where default export on index
