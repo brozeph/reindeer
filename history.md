@@ -1,3 +1,7 @@
+# v3.1.4 - 03.25.2019
+
+* Tightened up validation for `float` and `double` values
+
 # v3.1.3 - 03.19.2019
 
 * Updated `es` dependency with tightened request body handling

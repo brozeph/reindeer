@@ -219,6 +219,11 @@ describe('validators', () => {
 			let result = isValid('99.99');
 			result.should.be.true;
 		});
+
+		it('should allow 0', () => {
+			let result = isValid(0);
+			result.should.be.true;
+		});
 	});
 
 	describe('#float', () => {
@@ -249,6 +254,11 @@ describe('validators', () => {
 
 		it('should be true when value is a valid double number formatted as a string', () => {
 			let result = isValid('99.99');
+			result.should.be.true;
+		});
+
+		it('should allow 0', () => {
+			let result = isValid(0);
 			result.should.be.true;
 		});
 	});

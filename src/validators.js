@@ -128,6 +128,10 @@ function double (field) {
 	return (value) => {
 		var parsedValue = parseFloat(value);
 
+		if (parsedValue === 0) {
+			return true;
+		}
+
 		return ![
 			isMissingWhenRequired(field, value),
 			!isUndefined(value) && isNaN(parsedValue),
@@ -141,6 +145,10 @@ function double (field) {
 function float (field) {
 	return (value) => {
 		var parsedValue = parseFloat(value);
+
+		if (parsedValue === 0) {
+			return true;
+		}
 
 		return ![
 			isMissingWhenRequired(field, value),
