@@ -272,8 +272,11 @@ export class QueryBuilder {
 
 		// keyword search
 		if (filters && filters.keyword) {
+			// adjusted keyword filter for ES 6.x and up
 			filter = {
-				match : filters.keyword
+				'multi_match' : {
+					query : filters.keyword
+				}
 			};
 
 			queryBool.must = (queryBool.must || []).concat(filter);
