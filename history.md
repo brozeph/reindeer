@@ -1,3 +1,8 @@
+# v3.2.0 - 10.12.2019
+
+* Added support for Elasticsearch 6.x in the `QueryBuilder`
+* Updated dependencies
+
 # v3.1.4 - 03.25.2019
 
 * Tightened up validation for `float` and `double` values
