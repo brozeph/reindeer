@@ -1,3 +1,7 @@
+# v3.2.1 - 06.25.2020
+
+* Updated dependencies
+
 # v3.2.0 - 10.12.2019
 
 * Added support for Elasticsearch 6.x in the `QueryBuilder`

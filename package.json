@@ -2,7 +2,7 @@
   "name": "reindeer",
   "description": "Provides schema enforcement based on Elasticsearch type mappings",
   "main": "./dist",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "author": "Joshua Thomas (https://github.com/brozeph)",
   "contributors": [
     "Robin Momii (https://github.com/rmomii)"
@@ -48,28 +48,28 @@
     "test:unit": "NODE_ENV=test nyc mocha ./test/src"
   },
   "devDependencies": {
-    "@babel/cli": "^7.6.4",
-    "@babel/core": "^7.6.4",
-    "@babel/plugin-transform-runtime": "^7.6.2",
-    "@babel/preset-env": "^7.6.3",
-    "@babel/register": "^7.6.2",
-    "babel-eslint": "^10.0.3",
-    "babel-plugin-istanbul": "^5.2.0",
+    "@babel/cli": "^7.10.3",
+    "@babel/core": "^7.10.3",
+    "@babel/plugin-transform-runtime": "^7.10.3",
+    "@babel/preset-env": "^7.10.3",
+    "@babel/register": "^7.10.3",
+    "babel-eslint": "^10.1.0",
+    "babel-plugin-istanbul": "^6.0.0",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.7",
+    "coveralls": "^3.1.0",
     "eslint-plugin-babel": "^5.3.0",
     "gulp": "^4.0.2",
     "gulp-babel": "^8.0.0",
     "gulp-clean": "^0.4.0",
     "gulp-eslint": "^6.0.0",
     "gulp-sourcemaps": "^2.6.5",
-    "mocha": "^6.2.1",
-    "nock": "^11.4.0",
-    "nyc": "^14.1.1",
-    "uuid": "^3.3.3"
+    "mocha": "^8.0.1",
+    "nock": "^12.0.3",
+    "nyc": "^15.1.0",
+    "uuid": "^8.2.0"
   },
   "dependencies": {
-    "@babel/runtime-corejs2": "^7.6.3",
+    "@babel/runtime-corejs2": "^7.10.3",
     "es": "^0.7.3"
   }
 }
