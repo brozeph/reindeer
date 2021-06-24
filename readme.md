@@ -109,7 +109,7 @@ npm install reindeer
 
 To create a new mapper, use the constructor and supply the following parameters:
 
-* `config` - _(required)_ - this is an object that defines the `_index`, `_type` and optionally additional `server` information for the Elasticsearch instance
+* `config` - _(required)_ - this is an object that defines the `_index` and optionally additional `server` information for the Elasticsearch instance
 * `mapping` - _(required)_ - this is an object that defines the [Elasticsearch mapping](https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html)
 
 _NOTE:_ In the event that there exists a mapping error (meaning that the mapping contains an invalid type or is not parseable), an `InvalidMappingError` is thrown during construction.
@@ -123,8 +123,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     properties : {
       animalId : {
@@ -163,7 +162,6 @@ The Reindeer module makes use of the `es` NPM package (<https://www.npmjs.com/pa
 The config parameter supports the following fields:
 
 * `_index` - _(required)_ - denotes the specific index within Elasticsearch that the mapping applies to
-* `_type` - _(required)_ - denotes the specific type that the mapping object applies to
 * `server` - _(optional)_ - defines how to connect to the Elasticsearch cluster
 * `timeout` - _(optional)_ - globally controls the timeout for all operations against Elasticsearch
 
@@ -183,7 +181,6 @@ The following is an example config with several additional parameters supplied. 
 ```javascript
 var config = {
   _index : 'animals',
-  _type : 'cats',
   server : {
     agent : false,
     auth : 'user:pass',
@@ -202,7 +199,6 @@ The `timeout` parameter is optional - when not supplied, it is set to 30 seconds
 ```javascript
 var config = {
   _index : 'animals',
-  _type : 'cats',
   timeout : 60000 // 60 seconds
 };
 ```
@@ -224,7 +220,6 @@ var Mapper = require('reindeer').Mapper;
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
     _index : 'animals',
-    _type : 'cats'
   }, {
     /* ... mapping details here ... */
   });
@@ -247,7 +242,7 @@ For convenience purposes, [request body search](https://www.elastic.co/guide/en/
 
 #### #search
 
-This method will search for documents within the `_index` and `_type` that were used to construct the mapper.
+This method will search for documents within the `_index` that were used to construct the mapper.
 
 **Usage:** `mapper.search(options, query, callback)`
 
@@ -268,8 +263,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -319,8 +313,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -377,8 +370,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -413,8 +405,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -461,8 +452,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -502,8 +492,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -547,8 +536,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -603,8 +591,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -649,8 +636,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -701,8 +687,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -744,8 +729,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -795,8 +779,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -834,8 +817,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -874,8 +856,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -924,8 +905,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -970,8 +950,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -992,8 +971,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -1025,8 +1003,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
@@ -1086,8 +1063,7 @@ var Mapper = require('reindeer').Mapper;
 
 // create a cats Elasticsearch data mapper
 var catsMapper = new Mapper({
-    _index : 'animals',
-    _type : 'cats'
+    _index : 'animals'
   }, {
     /* ... mapping details here ... */
   });
