@@ -11,7 +11,7 @@
 					"format": "dateOptionalTime"
 				},
 				"someString": {
-					"type": "string"
+					"type": "keyword"
 				},
 				"someRequiredInteger": {
 					"required": true,
@@ -23,11 +23,11 @@
 			"dynamic": "false",
 			"properties": {
 				"anotherString": {
-					"type": "string"
+					"type": "text"
 				},
 				"nonAnalyzedString": {
 					"index": "not_analyzed",
-					"type": "string"
+					"type": "keyword"
 				}
 			}
 		},
@@ -38,7 +38,7 @@
 				},
 				"arrayOfStrings": {
 					"index": "not_analyzed",
-					"type": "string"
+					"type": "keyword"
 				},
 				"someBoolean": {
 					"type": "boolean"
@@ -55,7 +55,7 @@
 			"properties": {
 				"docId": {
 					"index": "not_analyzed",
-					"type": "string"
+					"type": "keyword"
 				}
 			}
 		}

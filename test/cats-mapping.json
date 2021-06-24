@@ -2,7 +2,7 @@
   "dynamic": false,
   "properties": {
     "animalId": {
-      "type": "string"
+      "type": "keyword"
     },
     "birthday": {
       "type": "date",
@@ -10,11 +10,11 @@
     },
     "breed": {
       "required": true,
-      "type": "string"
+      "type": "keyword"
     },
     "name": {
       "required": true,
-      "type": "string"
+      "type": "text"
     },
     "attributes": {
       "dynamic": false,

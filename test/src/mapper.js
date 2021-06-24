@@ -1706,7 +1706,7 @@ describe('mapper', () => {
 		describe('#analyzedFields', () => {
 			it('should properly return analyzedFields', () => {
 				let analyzedFields = mapper.analyzedFields();
-				analyzedFields.should.have.length(2);
+				analyzedFields.should.have.length(1);
 			});
 		});
 
