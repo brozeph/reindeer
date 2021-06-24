@@ -69,6 +69,10 @@ For each method documented below, the `callback` argument is fully optional. In 
 npm install reindeer
 ```
 
+### Elasticsearch Version Compatibility
+
+When using Elasticsearch v7 and up, utilize v4.x (latest) of `reindeer`. For prior versions of Elasticsearch, utilize `v3.3.0` (`npm install reindeer@v3.3.0`).
+
 ## Usage
 
 #### Initialization
