@@ -105,8 +105,7 @@ function bulkUpdate (self, idList, docList, upsert, callback) {
 		commands.push({
 				update : {
 					_id : _id || model._id,
-					_index : self._options._index,
-					_type : self._options._type
+					_index : self._options._index
 				}
 			}, {
 				doc : model.clone,
@@ -283,7 +282,7 @@ function ensureInitialize (self, callback) {
 		return setImmediate(callback);
 	}
 
-	// initialize _index and _type in Elasticsearch
+	// initialize _index in Elasticsearch
 	return initialize(self, callback);
 }
 
@@ -375,9 +374,7 @@ function initialize (self, callback) {
 		client,
 		cloneConfig = validators.clone(self._options);
 
-	// due to behavior of `es` module, _type must not be specified to determine
 	// if _index exists or not
-	cloneConfig._type = undefined;
 	client = elasticsearch(cloneConfig);
 
 	return client.indices.exists((err, info) => {
@@ -389,10 +386,8 @@ function initialize (self, callback) {
 
 		// detect when index does not exist
 		if (!info.exists) {
-			// create the _type with supplied mapping while creating the _index
-			data.mappings = {};
-			data.mappings[self._options._type] =
-				prepareMappingForElasticsearch(self._mapping);
+			// create the mapping while creating the _index
+			data.mappings = prepareMappingForElasticsearch(self._mapping);
 
 			return client.indices.createIndex(data, (err) => {
 				if (err) {
@@ -409,24 +404,12 @@ function initialize (self, callback) {
 			});
 		}
 
-		// call to put mapping because the index exists (using mapping client)
-		data[self._options._type] =
-			prepareMappingForElasticsearch(self._mapping);
+		// in Elasticsearch 7.x and up, field types can't be changed as 
+		// this may invalidate the data that is already indexed
+		// ensure initialize is not called subsequently for each method
+		self._isInitialized = true;
 
-		return self._client.indices.putMapping(data, (err) => {
-			if (err) {
-				err.desc = '#initialize - unable to put mapping to Elasticsearch';
-				err._index = self._options._index;
-				err._type = self._options._type;
-
-				return callback(err);
-			}
-
-			// ensure initialize is not called subsequently for each method
-			self._isInitialized = true;
-
-			return callback();
-		});
+		return callback();
 	});
 }
 
@@ -477,8 +460,7 @@ function scrollAndDelete (self, query, scrollId, state, callback) {
 					commands = result.hits.hits.map((hit) => ({
 						delete : {
 							_id : hit._id,
-							_index : self._options._index,
-							_type : self._options._type
+							_index : self._options._index
 						}
 					}));
 				}
@@ -765,10 +747,6 @@ export class Mapper extends EventEmitter {
 			throw new Error('_index must be provided');
 		}
 
-		if (!options._type || typeof options._type !== 'string') {
-			throw new Error('_type must be provided');
-		}
-
 		// initialize Mapper properties
 		this._client = elasticsearch(options);
 		this._dynamic = {};
@@ -868,8 +846,7 @@ export class Mapper extends EventEmitter {
 					commands.push({
 							index : {
 								_id : _id || model._id,
-								_index : _this._options._index,
-								_type : _this._options._type
+								_index : _this._options._index
 							}
 						},
 						model.clone);
@@ -963,8 +940,7 @@ export class Mapper extends EventEmitter {
 					commands.push({
 						delete : {
 							_id,
-							_index : _this._options._index,
-							_type : _this._options._type
+							_index : _this._options._index
 						}
 					});
 
@@ -1024,8 +1000,7 @@ export class Mapper extends EventEmitter {
 					docs.push({
 						_id,
 						_index : _this._options._index,
-						_source,
-						_type : _this._options._type
+						_source
 					});
 
 					return false;
@@ -1175,7 +1150,7 @@ export class Mapper extends EventEmitter {
 									return reject(err);
 								}
 
-								// ensure type values are as expected
+								// ensure values are as expected
 								coerceProperties(_this, model.clone);
 
 								// apply the _id if it isn't specified

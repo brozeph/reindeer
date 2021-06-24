@@ -1,3 +1,9 @@
+# v4.0.0 - 06.23.2021
+
+* Enabled support Elasticsearch v7 and above (not backwards compatible)
+  * When creating a new index, the mapping is provided without the type wrapper
+  * When mapper is initialized, update mapping no longer occurs if index already exists
+
 # v3.3.0 - 06.22.2021
 
 * Updated dependencies

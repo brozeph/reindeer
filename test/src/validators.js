@@ -213,6 +213,9 @@ describe('validators', () => {
 
 			result = isValid(99.99);
 			result.should.be.true;
+
+			result = isValid(-115.171482);
+			result.should.be.true;
 		});
 
 		it('should be true when value is a valid double number formatted as a string', () => {
@@ -482,6 +485,35 @@ describe('validators', () => {
 		});
 	});
 
+	describe('#keyword', () => {
+		let isValid = validators.keyword();
+
+		it('should properly detect field.required setting', () => {
+			let result = isValid(null);
+			result.should.be.true;
+
+			validators.keyword({ required : true })(null).should.be.false;
+		});
+
+		it('should be true when value is a valid keyword', () => {
+			let result = isValid('dafuq');
+			result.should.be.true;
+		});
+
+		it('should be true when value can be safely cast to a keyword', () => {
+			let result = isValid(1234);
+			result.should.be.true;
+		});
+
+		it('should be false when value is not safe to cast as a keyword', () => {
+			let result = isValid({ test : true });
+			result.should.be.false;
+
+			result = isValid(['test', 'test']);
+			result.should.be.false;
+		});
+	});
+
 	describe('#long', () => {
 		let isValid = validators.long();
 
@@ -566,27 +598,27 @@ describe('validators', () => {
 		});
 	});
 
-	describe('#string', () => {
-		let isValid = validators.string();
+	describe('#text', () => {
+		let isValid = validators.text();
 
 		it('should properly detect field.required setting', () => {
 			let result = isValid(null);
 			result.should.be.true;
 
-			validators.string({ required : true })(null).should.be.false;
+			validators.text({ required : true })(null).should.be.false;
 		});
 
-		it('should be true when value is a valid string', () => {
+		it('should be true when value is a valid text', () => {
 			let result = isValid('dafuq');
 			result.should.be.true;
 		});
 
-		it('should be true when value can be safely cast to a string', () => {
+		it('should be true when value can be safely cast to a text', () => {
 			let result = isValid(1234);
 			result.should.be.true;
 		});
 
-		it('should be false when value is not safe to cast as a string', () => {
+		it('should be false when value is not safe to cast as a text', () => {
 			let result = isValid({ test : true });
 			result.should.be.false;
 

@@ -1,6 +1,7 @@
 /* eslint no-magic-numbers : 0 */
 /* eslint no-undefined : 0 */
 /* eslint no-unused-expressions : 0 */
+/* eslint no-unused-vars : 0 */
 /* eslint sort-keys : 0 */
 import chai from 'chai';
 import { Mapper } from '../../src/mapper.js';
@@ -29,8 +30,7 @@ describe('mapper', () => {
 		nock.cleanAll();
 
 		mapper = new Mapper({
-			_index : 'test-index',
-			_type : 'test-type'
+			_index : 'test-index'
 		}, testMapping);
 
 		// monkey patch initialize
@@ -63,13 +63,11 @@ describe('mapper', () => {
 	});
 
 	describe('constructor', () => {
-		it('should require type name on constructor', () => {
+		it('should require _index name on constructor', () => {
 			let err;
 
 			try {
-				mapper = new Mapper({
-					_type : 'test-type'
-				}, testMapping);
+				mapper = new Mapper({}, testMapping);
 			} catch (ex) {
 				err = ex;
 			}
@@ -79,29 +77,12 @@ describe('mapper', () => {
 			err.message.should.equal('_index must be provided');
 		});
 
-		it('should require type name on constructor', () => {
-			let err;
-
-			try {
-				mapper = new Mapper({
-					_index : 'test-index'
-				}, testMapping);
-			} catch (ex) {
-				err = ex;
-			}
-
-			should.exist(err);
-			should.exist(err.message);
-			err.message.should.equal('_type must be provided');
-		});
-
 		it('should require mapping on constructor', () => {
 			let err;
 
 			try {
 				mapper = new Mapper({
-					_index : 'test-index',
-					_type : 'test-type'
+					_index : 'test-index'
 				});
 			} catch (ex) {
 				err = ex;
@@ -121,8 +102,7 @@ describe('mapper', () => {
 
 			try {
 				mapper = new Mapper({
-					_index : 'test-index',
-					_type : 'test-type'
+					_index : 'test-index'
 				}, invalidMapping);
 			} catch (ex) {
 				err = ex;
@@ -142,8 +122,7 @@ describe('mapper', () => {
 
 			try {
 				mapper = new Mapper({
-					_index : 'test-index',
-					_type : 'test-type'
+					_index : 'test-index'
 				}, invalidMapping);
 			} catch (ex) {
 				err = ex;
@@ -233,7 +212,7 @@ describe('mapper', () => {
 
 					return { acknowledged : true };
 				})
-				.get('/test-index/test-type/test-id/_source')
+				.get('/test-index/_source/test-id')
 				.reply(200, (uri, body) => {
 					requestBody = body;
 					requestUri = uri;
@@ -253,79 +232,6 @@ describe('mapper', () => {
 				.catch(done);
 		});
 
-		it('should properly bubble error if encountered putting mapping', (done) => {
-			nock('http://localhost:9200')
-				.head('/test-index')
-				.reply(200, (uri, body) => {
-					requestBody = body;
-					requestUri = uri;
-
-					return { statusCode : 200 };
-				})
-				.put('/test-index/test-type/bad-id?op_type=create')
-				.reply(499, (uri, body) => {
-					requestBody = body;
-					requestUri = uri;
-
-					return {
-						message : 'server unavailable',
-						statusCode : 499
-					};
-				});
-
-			mapper._isInitialized = false;
-
-			mapper.delete('test-id', (err, result) => {
-				should.exist(err);
-				should.not.exist(result);
-				should.exist(err.desc);
-				should.exist(err._index);
-				should.exist(err._type);
-				err.desc.should.contain('#initialize');
-
-				return done();
-			});
-		});
-
-		it('should put the mapping in the event the index exists', (done) => {
-			nock('http://localhost:9200')
-				.head('/test-index')
-				.reply(200, (uri, body) => {
-					requestBody = body;
-					requestUri = uri;
-
-					return { statusCode : 200 };
-				})
-				.put('/test-index/_mapping/test-type')
-				.reply(201, (uri, body) => {
-					requestBody = body;
-					requestUri = uri;
-					isUpdatedMapping = true;
-
-					return { acknowledged : true };
-				})
-				.get('/test-index/test-type/test-id/_source')
-				.reply(200, (uri, body) => {
-					requestBody = body;
-					requestUri = uri;
-
-					return JSON.parse(JSON.stringify(mockModel));
-				});
-
-			mapper._isInitialized = false;
-
-			mapper.get('test-id', (err, result) => {
-				if (err) {
-					return done(err);
-				}
-
-				should.exist(result);
-				isUpdatedMapping.should.be.true;
-
-				return done();
-			});
-		});
-
 		it('should prepare the mapping before creating index in Elasticsearch', (done) => {
 			nock('http://localhost:9200')
 				.head('/test-index')
@@ -342,7 +248,7 @@ describe('mapper', () => {
 
 					return { acknowledged : true };
 				})
-				.get('/test-index/test-type/test-id/_source')
+				.get('/test-index/_source/test-id')
 				.reply(200, (uri) => {
 					requestUri = uri;
 
@@ -355,53 +261,13 @@ describe('mapper', () => {
 				.then((result) => {
 					should.exist(result);
 
-					let mapping = requestBody.mappings['test-type'];
+					let mapping = requestBody.mappings;
 					should.not.exist(
 						mapping.properties.strictDynamicSubDocument.properties.someRequiredInteger.required);
 
 					return done();
 				})
 				.catch(done);
-		});
-
-		it('should prepare the mapping before updating index in Elasticsearch', (done) => {
-			nock('http://localhost:9200')
-				.head('/test-index')
-				.reply(200, (uri, body) => {
-					requestBody = body;
-					requestUri = uri;
-
-					return { statusCode : 200 };
-				})
-				.put('/test-index/_mapping/test-type')
-				.reply(201, (uri, body) => {
-					requestBody = body;
-					isUpdatedMapping = true;
-
-					return { acknowledged : true };
-				})
-				.get('/test-index/test-type/test-id/_source')
-				.reply(200, (uri) => {
-					requestUri = uri;
-
-					return JSON.parse(JSON.stringify(mockModel));
-				});
-
-			mapper._isInitialized = false;
-
-			mapper.get('test-id', (err, result) => {
-				if (err) {
-					return done(err);
-				}
-
-				should.exist(result);
-
-				let mapping = requestBody['test-type'];
-				should.not.exist(
-					mapping.properties.strictDynamicSubDocument.properties.someRequiredInteger.required);
-
-				return done();
-			});
 		});
 	});
 
@@ -415,7 +281,7 @@ describe('mapper', () => {
 				let summary;
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/_search')
+					.post('/test-index/_search')
 					.reply(409, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -437,7 +303,7 @@ describe('mapper', () => {
 						should.not.exist(result);
 						should.not.exist(summary);
 						should.exist(requestUri);
-						requestUri.should.equal('/test-index/test-type/_search');
+						requestUri.should.equal('/test-index/_search');
 
 						return done();
 					});
@@ -447,7 +313,7 @@ describe('mapper', () => {
 				let summary;
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/_search')
+					.post('/test-index/_search')
 					.reply(200, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -466,7 +332,6 @@ describe('mapper', () => {
 								hits : [
 									{
 										_index : 'test-index',
-										_type : 'test-type',
 										_id : mockModel.animalId,
 										_score : 1.0,
 										_source : mockModel
@@ -493,7 +358,7 @@ describe('mapper', () => {
 						should.exist(summary.total);
 						summary.total.should.equal(1);
 						should.exist(requestUri);
-						requestUri.should.equal('/test-index/test-type/_search');
+						requestUri.should.equal('/test-index/_search');
 
 						return done();
 					});
@@ -520,7 +385,7 @@ describe('mapper', () => {
 
 			it('should properly bubble errors', (done) => {
 				nock('http://localhost:9200')
-					.put('/test-index/test-type/bad-id?op_type=index')
+					.put('/test-index/_doc/bad-id?op_type=index')
 					.reply(499, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -537,7 +402,7 @@ describe('mapper', () => {
 						should.exist(err);
 						should.exist(err.statusCode);
 						err.statusCode.should.equal(499);
-						requestUri.should.equal('/test-index/test-type/bad-id?op_type=index');
+						requestUri.should.equal('/test-index/_doc/bad-id?op_type=index');
 
 						return done();
 					});
@@ -545,14 +410,13 @@ describe('mapper', () => {
 
 			it('should properly PUT when _id is supplied', (done) => {
 				nock('http://localhost:9200')
-					.put('/test-index/test-type/test-id?op_type=index')
+					.put('/test-index/_doc/test-id?op_type=index')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							_index : 'test-index',
-							_type : 'test-type',
 							_id : 'test-id',
 							_version : 1,
 							created : true
@@ -566,7 +430,7 @@ describe('mapper', () => {
 						should.exist(result.strictDynamicSubDocument.someDate);
 						(result.strictDynamicSubDocument.someDate instanceof Date)
 							.should.be.true;
-						requestUri.should.equal('/test-index/test-type/test-id?op_type=index');
+						requestUri.should.equal('/test-index/_doc/test-id?op_type=index');
 
 						return done();
 					})
@@ -577,14 +441,13 @@ describe('mapper', () => {
 				let _id;
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type?op_type=index')
+					.post('/test-index/_doc?op_type=index')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							_index : 'test-index',
-							_type : 'test-type',
 							_id : 'random',
 							_version : 1,
 							created : true
@@ -602,7 +465,7 @@ describe('mapper', () => {
 						should.exist(result.strictDynamicSubDocument.someDate);
 						(result.strictDynamicSubDocument.someDate instanceof Date)
 							.should.be.true;
-						requestUri.should.equal('/test-index/test-type?op_type=index');
+						requestUri.should.equal('/test-index/_doc?op_type=index');
 						should.exist(_id);
 						_id.should.equal('random');
 
@@ -613,14 +476,13 @@ describe('mapper', () => {
 
 			it('should properly PUT when _id.path is supplied', (done) => {
 				nock('http://localhost:9200')
-					.put('/test-index/test-type/test-id?op_type=index')
+					.put('/test-index/_doc/test-id?op_type=index')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							_index : 'test-index',
-							_type : 'test-type',
 							_id : 'test-id',
 							_version : 1,
 							created : true
@@ -631,7 +493,7 @@ describe('mapper', () => {
 					.then((result) => {
 						should.exist(result);
 
-						requestUri.should.equal('/test-index/test-type/test-id?op_type=index');
+						requestUri.should.equal('/test-index/_doc/test-id?op_type=index');
 
 						return done();
 					})
@@ -640,14 +502,13 @@ describe('mapper', () => {
 
 			it('should properly support _id overloaded as options', (done) => {
 				nock('http://localhost:9200')
-					.put('/test-index/test-type/test-id?ttl=1d&op_type=index')
+					.put('/test-index/_doc/test-id?ttl=1d&op_type=index')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							_index : 'test-index',
-							_type : 'test-type',
 							_id : 'test-id',
 							_version : 1,
 							created : true
@@ -668,7 +529,7 @@ describe('mapper', () => {
 						should.exist(result.strictDynamicSubDocument.someDate);
 						(result.strictDynamicSubDocument.someDate instanceof Date)
 							.should.be.true;
-						requestUri.should.equal('/test-index/test-type/test-id?ttl=1d&op_type=index');
+						requestUri.should.equal('/test-index/_doc/test-id?ttl=1d&op_type=index');
 
 						return done();
 					})
@@ -712,7 +573,7 @@ describe('mapper', () => {
 
 			it('should properly bubble errors', (done) => {
 				nock('http://localhost:9200')
-					.delete('/test-index/test-type/bad-id')
+					.delete('/test-index/_doc/bad-id')
 					.reply(404, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -726,7 +587,7 @@ describe('mapper', () => {
 				mapper.delete('bad-id', (err, result) => {
 					should.exist(err);
 					should.not.exist(result);
-					requestUri.should.equal('/test-index/test-type/bad-id');
+					requestUri.should.equal('/test-index/_doc/bad-id');
 
 					return done();
 				});
@@ -734,7 +595,7 @@ describe('mapper', () => {
 
 			it('should properly delete', (done) => {
 				nock('http://localhost:9200')
-					.delete('/test-index/test-type/test-id')
+					.delete('/test-index/_doc/test-id')
 					.reply(202, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -748,7 +609,7 @@ describe('mapper', () => {
 					}
 
 					should.exist(result);
-					requestUri.should.equal('/test-index/test-type/test-id');
+					requestUri.should.equal('/test-index/_doc/test-id');
 
 					return done();
 				});
@@ -761,7 +622,7 @@ describe('mapper', () => {
 				};
 
 				nock('http://localhost:9200')
-					.delete('/test-index/test-type/test-id?timeout=1')
+					.delete('/test-index/_doc/test-id?timeout=1')
 					.reply(202, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -775,7 +636,7 @@ describe('mapper', () => {
 					}
 
 					should.exist(result);
-					requestUri.should.equal('/test-index/test-type/test-id?timeout=1');
+					requestUri.should.equal('/test-index/_doc/test-id?timeout=1');
 
 					return done();
 				});
@@ -805,7 +666,7 @@ describe('mapper', () => {
 				};
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/_search?scroll=30s')
+					.post('/test-index/_search?scroll=30s')
 					.reply(200, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -820,7 +681,7 @@ describe('mapper', () => {
 				mapper.delete(options)
 					.then((result) => {
 						should.exist(result);
-						requestUri.should.contain('/test-index/test-type/_search?scroll');
+						requestUri.should.contain('/test-index/_search?scroll');
 
 						return done();
 					})
@@ -850,7 +711,7 @@ describe('mapper', () => {
 				}
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/_search?scroll=30s')
+					.post('/test-index/_search?scroll=30s')
 					.reply(function (uri, requestBody) {
 						sentQuery = requestBody;
 
@@ -933,7 +794,7 @@ describe('mapper', () => {
 
 			it('should properly not return an error when get finds no document', (done) => {
 				nock('http://localhost:9200')
-					.get('/test-index/test-type/bad-id/_source')
+					.get('/test-index/_source/bad-id')
 					.reply(404, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -947,7 +808,7 @@ describe('mapper', () => {
 				mapper.get('bad-id')
 					.then((result) => {
 						should.not.exist(result);
-						requestUri.should.equal('/test-index/test-type/bad-id/_source');
+						requestUri.should.equal('/test-index/_source/bad-id');
 
 						return done();
 					})
@@ -956,7 +817,7 @@ describe('mapper', () => {
 
 			it('should properly return non 404 errors', (done) => {
 				nock('http://localhost:9200')
-					.get('/test-index/test-type/really-bad-id/_source')
+					.get('/test-index/_source/really-bad-id')
 					.reply(499, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -972,7 +833,7 @@ describe('mapper', () => {
 					should.not.exist(result);
 					should.exist(err.statusCode);
 					err.statusCode.should.equal(499);
-					requestUri.should.equal('/test-index/test-type/really-bad-id/_source');
+					requestUri.should.equal('/test-index/_source/really-bad-id');
 
 					return done();
 				});
@@ -980,7 +841,7 @@ describe('mapper', () => {
 
 			it('should properly return document with correctly typed values', (done) => {
 				nock('http://localhost:9200')
-					.get('/test-index/test-type/test-id/_source')
+					.get('/test-index/_source/test-id')
 					.reply(200, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -998,7 +859,7 @@ describe('mapper', () => {
 					should.exist(result.strictDynamicSubDocument.someDate);
 					(result.strictDynamicSubDocument.someDate instanceof Date)
 						.should.be.true;
-					requestUri.should.equal('/test-index/test-type/test-id/_source');
+					requestUri.should.equal('/test-index/_source/test-id');
 
 					return done();
 				});
@@ -1011,7 +872,7 @@ describe('mapper', () => {
 				};
 
 				nock('http://localhost:9200')
-					.get('/test-index/test-type/test-id/_source?fields=identity')
+					.get('/test-index/_source/test-id?fields=identity')
 					.reply(200, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -1022,7 +883,7 @@ describe('mapper', () => {
 				mapper.get(options)
 					.then((result) => {
 						should.exist(result);
-						requestUri.should.equal('/test-index/test-type/test-id/_source?fields=identity');
+						requestUri.should.equal('/test-index/_source/test-id?fields=identity');
 
 						return done();
 					})
@@ -1050,7 +911,7 @@ describe('mapper', () => {
 				let version;
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/bad-id/_update')
+					.post('/test-index/_update/bad-id')
 					.reply(499, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -1069,7 +930,7 @@ describe('mapper', () => {
 					should.not.exist(version);
 					should.exist(err.statusCode);
 					err.statusCode.should.equal(499);
-					requestUri.should.equal('/test-index/test-type/bad-id/_update');
+					requestUri.should.equal('/test-index/_update/bad-id');
 					should.exist(requestBody);
 
 					return done();
@@ -1078,14 +939,13 @@ describe('mapper', () => {
 
 			it('should allow partial document update without required fields', (done) => {
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/test-id/_update')
+					.post('/test-index/_update/test-id')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							_index : 'test-index',
-							_type : 'test-type',
 							_id : 'test-id',
 							_version : 1,
 							updated : true
@@ -1106,14 +966,13 @@ describe('mapper', () => {
 
 			it('should allow partial document update when required fields are undefined', (done) => {
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/test-id/_update')
+					.post('/test-index/_update/test-id')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							_index : 'test-index',
-							_type : 'test-type',
 							_id : 'test-id',
 							_version : 1,
 							updated : true
@@ -1134,14 +993,13 @@ describe('mapper', () => {
 
 			it('should properly update and coerce types supplied', (done) => {
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/test-id/_update')
+					.post('/test-index/_update/test-id')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							_index : 'test-index',
-							_type : 'test-type',
 							_id : 'test-id',
 							_version : 1,
 							updated : true
@@ -1158,7 +1016,7 @@ describe('mapper', () => {
 					should.exist(result.strictDynamicSubDocument.someDate);
 					(result.strictDynamicSubDocument.someDate instanceof Date)
 						.should.be.true;
-					requestUri.should.equal('/test-index/test-type/test-id/_update');
+					requestUri.should.equal('/test-index/_update/test-id');
 					should.exist(requestBody);
 
 					return done();
@@ -1174,14 +1032,13 @@ describe('mapper', () => {
 					version;
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/test-id/_update?retry_on_conflict=3')
+					.post('/test-index/_update/test-id?retry_on_conflict=3')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							_index : 'test-index',
-							_type : 'test-type',
 							_id : 'test-id',
 							_version : 1,
 							updated : true
@@ -1197,7 +1054,7 @@ describe('mapper', () => {
 
 					should.exist(result);
 					should.exist(version);
-					requestUri.should.equal('/test-index/test-type/test-id/_update?retry_on_conflict=3');
+					requestUri.should.equal('/test-index/_update/test-id?retry_on_conflict=3');
 					should.exist(requestBody);
 
 					return done();
@@ -1225,7 +1082,7 @@ describe('mapper', () => {
 				let version;
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/bad-id/_update')
+					.post('/test-index/_update/bad-id')
 					.reply(499, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -1244,7 +1101,7 @@ describe('mapper', () => {
 					should.not.exist(version);
 					should.exist(err.statusCode);
 					err.statusCode.should.equal(499);
-					requestUri.should.equal('/test-index/test-type/bad-id/_update');
+					requestUri.should.equal('/test-index/_update/bad-id');
 					should.exist(requestBody);
 
 					return done();
@@ -1253,14 +1110,13 @@ describe('mapper', () => {
 
 			it('should properly upsert and coerce types supplied', (done) => {
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/test-id/_update')
+					.post('/test-index/_update/test-id')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							_index : 'test-index',
-							_type : 'test-type',
 							_id : 'test-id',
 							_version : 1,
 							updated : true
@@ -1277,7 +1133,7 @@ describe('mapper', () => {
 					should.exist(result.strictDynamicSubDocument.someDate);
 					(result.strictDynamicSubDocument.someDate instanceof Date)
 						.should.be.true;
-					requestUri.should.equal('/test-index/test-type/test-id/_update');
+					requestUri.should.equal('/test-index/_update/test-id');
 					should.exist(requestBody);
 
 					return done();
@@ -1293,14 +1149,13 @@ describe('mapper', () => {
 					version;
 
 				nock('http://localhost:9200')
-					.post('/test-index/test-type/test-id/_update?retry_on_conflict=3')
+					.post('/test-index/_update/test-id?retry_on_conflict=3')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
 
 						return {
 							_index : 'test-index',
-							_type : 'test-type',
 							_id : 'test-id',
 							_version : 1,
 							updated : true
@@ -1316,7 +1171,7 @@ describe('mapper', () => {
 
 					should.exist(result);
 					should.exist(version);
-					requestUri.should.equal('/test-index/test-type/test-id/_update?retry_on_conflict=3');
+					requestUri.should.equal('/test-index/_update/test-id?retry_on_conflict=3');
 					should.exist(requestBody);
 
 					return done();
@@ -1411,9 +1266,9 @@ describe('mapper', () => {
 					.reply(201, {
 						took : 0,
 						items : [
-							{ create : { _index : 'test-index', _type : 'test-type' } },
-							{ create : { _index : 'test-index', _type : 'test-type' } },
-							{ create : { _index : 'test-index', _type : 'test-type' } }
+							{ create : { _index : 'test-index' } },
+							{ create : { _index : 'test-index' } },
+							{ create : { _index : 'test-index' } }
 						]
 					});
 
@@ -1476,9 +1331,9 @@ describe('mapper', () => {
 					.reply(201, {
 							took : 0,
 							items : [
-								{ create : { _index : 'test-index', _type : 'test-type' } },
-								{ create : { _index : 'test-index', _type : 'test-type' } },
-								{ create : { _index : 'test-index', _type : 'test-type' } }
+								{ create : { _index : 'test-index' } },
+								{ create : { _index : 'test-index' } },
+								{ create : { _index : 'test-index' } }
 							]
 						});
 
@@ -1663,9 +1518,9 @@ describe('mapper', () => {
 					.reply(201, {
 							took : 0,
 							items : [
-								{ create : { _index : 'test-index', _type : 'test-type' } },
-								{ create : { _index : 'test-index', _type : 'test-type' } },
-								{ create : { _index : 'test-index', _type : 'test-type' } }
+								{ create : { _index : 'test-index' } },
+								{ create : { _index : 'test-index' } },
+								{ create : { _index : 'test-index' } }
 							]
 						});
 
@@ -1700,9 +1555,9 @@ describe('mapper', () => {
 					.reply(201, {
 							took : 0,
 							items : [
-								{ create : { _index : 'test-index', _type : 'test-type' } },
-								{ create : { _index : 'test-index', _type : 'test-type' } },
-								{ create : { _index : 'test-index', _type : 'test-type' } }
+								{ create : { _index : 'test-index' } },
+								{ create : { _index : 'test-index' } },
+								{ create : { _index : 'test-index' } }
 							]
 						});
 
@@ -1825,9 +1680,9 @@ describe('mapper', () => {
 					.reply(201, {
 							took : 0,
 							items : [
-								{ create : { _index : 'test-index', _type : 'test-type' } },
-								{ create : { _index : 'test-index', _type : 'test-type' } },
-								{ create : { _index : 'test-index', _type : 'test-type' } }
+								{ create : { _index : 'test-index' } },
+								{ create : { _index : 'test-index' } },
+								{ create : { _index : 'test-index' } }
 							]
 						});
 
@@ -1851,7 +1706,7 @@ describe('mapper', () => {
 		describe('#analyzedFields', () => {
 			it('should properly return analyzedFields', () => {
 				let analyzedFields = mapper.analyzedFields();
-				analyzedFields.should.have.length(2);
+				analyzedFields.should.have.length(1);
 			});
 		});
 
@@ -2227,7 +2082,7 @@ describe('mapper', () => {
 
 						return { statusCode : 200 };
 					})
-					.put('/test-index/_mapping/test-type')
+					.put('/test-index/_mapping')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
@@ -2258,7 +2113,7 @@ describe('mapper', () => {
 
 						return { statusCode : 200 };
 					})
-					.put('/test-index/_mapping/test-type')
+					.put('/test-index/_mapping')
 					.reply(201, (uri, body) => {
 						requestBody = body;
 						requestUri = uri;
