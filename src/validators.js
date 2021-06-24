@@ -333,6 +333,5 @@ export default {
 	long,
 	object,
 	short,
-	string,
 	text : string
 };
