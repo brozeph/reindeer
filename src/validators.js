@@ -2,9 +2,9 @@ const
 	BYTE_MAX_VALUE = 127,
 	BYTE_MIN_VALUE = -128,
 	DOUBLE_MAX_VALUE = 1.7976931348623157E308,
-	DOUBLE_MIN_VALUE = 4.9E-324,
+	// DOUBLE_MIN_VALUE = 4.9E-324,
 	FLOAT_MAX_VALUE = 3.4028235E38,
-	FLOAT_MIN_VALUE = 1.4E-45,
+	// FLOAT_MIN_VALUE = 1.4E-45,
 	INT_MAX_VALUE = 2147483647,
 	INT_MIN_VALUE = -2147483648,
 	LONG_MAX_VALUE = 9223372036854776000, // actual value = 9223372036854775807,
@@ -135,7 +135,7 @@ function double (field) {
 		return ![
 			isMissingWhenRequired(field, value),
 			!isUndefined(value) && isNaN(parsedValue),
-			!isUndefined(value) && parsedValue < DOUBLE_MIN_VALUE,
+			!isUndefined(value) && parsedValue < (-1 * DOUBLE_MAX_VALUE),
 			!isUndefined(value) && parsedValue > DOUBLE_MAX_VALUE
 		].some(echo);
 	};
@@ -153,7 +153,7 @@ function float (field) {
 		return ![
 			isMissingWhenRequired(field, value),
 			!isUndefined(value) && isNaN(parsedValue),
-			!isUndefined(value) && parsedValue < FLOAT_MIN_VALUE,
+			!isUndefined(value) && parsedValue < (-1 * FLOAT_MAX_VALUE),
 			!isUndefined(value) && parsedValue > FLOAT_MAX_VALUE
 		].some(echo);
 	};

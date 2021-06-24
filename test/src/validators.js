@@ -213,6 +213,9 @@ describe('validators', () => {
 
 			result = isValid(99.99);
 			result.should.be.true;
+
+			result = isValid(-115.171482);
+			result.should.be.true;
 		});
 
 		it('should be true when value is a valid double number formatted as a string', () => {
