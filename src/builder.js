@@ -1,5 +1,5 @@
 /* eslint no-undefined : 0 */
-import validators from './validators';
+import validators from './validators.js';
 
 function buildFilters (queryBuilder, filterSet) {
 	let

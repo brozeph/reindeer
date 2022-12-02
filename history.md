@@ -1,3 +1,8 @@
+# v4.1.0 - 12.02.2022
+
+* Eliminated babel dependencies as well as gulp
+* Updated dependencies
+
 # v4.0.0 - 06.23.2021
 
 * Enabled support Elasticsearch v7 and above (not backwards compatible)

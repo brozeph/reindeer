@@ -1,9 +1,9 @@
 /* eslint no-undefined : 0 */
 import elasticsearch from 'es';
-import errors from './errors';
+import errors from './errors.js';
 import { EventEmitter } from 'events';
 import util from 'util';
-import validators from './validators';
+import validators from './validators.js';
 
 const
 	DECORATED_SCHEMA_PARAMETERS = [
