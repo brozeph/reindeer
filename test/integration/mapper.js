@@ -1,14 +1,21 @@
 /* eslint no-magic-numbers : 0 */
 /* eslint no-unused-expressions : 0 */
 import chai from 'chai';
+import jsonLoad from '../jsonLoader.js';
 import { Mapper } from '../../src/mapper.js';
 import { v4 as uuid } from 'uuid';
 
-const
-	catsMapping = require('../cats-mapping.json'),
-	should = chai.should();
+const should = chai.should();
 
 describe('mapper', () => {
+	let catsMapping;
+	
+	jsonLoad('./test/cats-mapping.json')
+		.then((json) => (catsMapping = json))
+		.catch((err) => { 
+			return err;
+		});
+
 	let
 		blue = {
 			animalId : uuid().replace(/\-/g, ''),

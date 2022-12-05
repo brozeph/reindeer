@@ -1,4 +1,4 @@
-import { Mapper } from './mapper';
-import { QueryBuilder } from './builder';
+import { Mapper } from './mapper.js';
+import { QueryBuilder } from './builder.js';
 
 export { Mapper, QueryBuilder };

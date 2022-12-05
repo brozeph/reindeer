@@ -4,14 +4,15 @@
 /* eslint no-unused-vars : 0 */
 /* eslint sort-keys : 0 */
 import chai from 'chai';
+import jsonLoad from '../jsonLoader.js';
 import { Mapper } from '../../src/mapper.js';
 import nock from 'nock';
 
-const
-	should = chai.should(),
-	testMapping = require('../test-mapping.json');
+const should = chai.should();
 
 describe('mapper', () => {
+	let testMapping;
+
 	let
 		isNewIndex = false,
 		isUpdatedMapping = false,
@@ -26,9 +27,13 @@ describe('mapper', () => {
 		nock.enableNetConnect();
 	});
 
+	before(async () => {
+		testMapping = await jsonLoad('./test/test-mapping.json');
+		return;
+	});
+
 	beforeEach(() => {
 		nock.cleanAll();
-
 		mapper = new Mapper({
 			_index : 'test-index'
 		}, testMapping);
